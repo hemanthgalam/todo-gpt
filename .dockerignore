@@ -1,0 +1,16 @@
+node_modules
+npm-debug.log
+coverage
+.git
+.github
+.vscode
+.env
+.env.*
+*.md
+!README.md
+!SETUP.md
+data
+backups
+tests
+.qodo
+.gitignore

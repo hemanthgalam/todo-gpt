@@ -1,0 +1,19 @@
+{
+  "provider": "openai",
+  "model": "gpt-4",
+  "temperature": 0.3,
+  "maxTokens": 2000,
+  "timeout": 30000,
+  "retries": 3,
+  "systemPrompts": {
+    "planning": "You are an expert software developer AI that creates detailed implementation plans for development tasks. Focus on practical, executable steps.",
+    "codeGeneration": "You are a code generation AI. Return only clean, production-ready code without explanations.",
+    "codeReview": "You are a senior code reviewer. Provide constructive feedback focusing on quality, security, and best practices."
+  },
+  "capabilities": {
+    "languages": ["JavaScript", "TypeScript", "Python", "Java", "Go", "Rust", "C++"],
+    "frameworks": ["React", "Vue", "Angular", "Express", "Django", "Flask", "Spring Boot"],
+    "databases": ["MongoDB", "PostgreSQL", "MySQL", "SQLite", "Redis"],
+    "tools": ["Docker", "Kubernetes", "AWS", "Git", "Jest", "Pytest"]
+  }
+}

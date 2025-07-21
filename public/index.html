@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo-GPT - AI Project Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .calendar-view {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .events-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .event-item {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+        }
+
+        .event-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .event-meta {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .event-description {
+            font-size: 14px;
+            color: #555;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-scheduled {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .status-in-progress {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .status-completed {
+            background: #e8f5e8;
+            color: #388e3c;
+        }
+
+        .status-failed {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            background: #f44336;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Todo-GPT</h1>
+            <p>Your AI-powered project assistant with intelligent scheduling</p>
+        </div>
+
+        <div class="dashboard">
+            <div class="card">
+                <h2>📅 Schedule New Task</h2>
+                <form id="taskForm">
+                    <div class="form-group">
+                        <label for="title">Task Title</label>
+                        <input type="text" id="title" name="title" required placeholder="e.g., Add user authentication">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="taskType">Task Type</label>
+                        <select id="taskType" name="taskType" required>
+                            <option value="">Select type...</option>
+                            <option value="feature">New Feature</option>
+                            <option value="bugfix">Bug Fix</option>
+                            <option value="refactor">Refactoring</option>
+                            <option value="optimization">Optimization</option>
+                            <option value="documentation">Documentation</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="priority">Priority</label>
+                        <select id="priority" name="priority">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                            <option value="urgent">Urgent</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="scheduledTime">Scheduled Time</label>
+                        <input type="datetime-local" id="scheduledTime" name="scheduledTime" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="projectPath">Project Path</label>
+                        <input type="text" id="projectPath" name="projectPath" required placeholder="/path/to/your/project">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description" rows="4" placeholder="Describe what needs to be done..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="requirements">Requirements (one per line)</label>
+                        <textarea id="requirements" name="requirements" rows="3" placeholder="- Must be responsive&#10;- Include error handling&#10;- Add unit tests"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn">Schedule Task</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>📊 Quick Stats</h2>
+                <div id="stats">
+                    <div style="margin-bottom: 15px;">
+                        <strong>Scheduled Tasks:</strong> <span id="scheduledCount">0</span>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <strong>In Progress:</strong> <span id="inProgressCount">0</span>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <strong>Completed:</strong> <span id="completedCount">0</span>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <strong>Success Rate:</strong> <span id="successRate">0%</span>
+                    </div>
+                </div>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px; color: #667eea;">System Status</h3>
+                <div id="systemStatus">
+                    <div style="margin-bottom: 10px;">
+                        <span style="color: #4caf50;">●</span> AI Agent: Online
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <span style="color: #4caf50;">●</span> Calendar: Active
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <span style="color: #4caf50;">●</span> Task Executor: Ready
+                    </div>
+                </div>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px; color: #667eea;">Integrations</h3>
+                <div id="integrationStatus">
+                    <div style="margin-bottom: 10px;">
+                        <span id="githubStatus" style="color: #999;">●</span> GitHub: <span id="githubStatusText">Checking...</span>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <span id="jiraStatus" style="color: #999;">●</span> JIRA: <span id="jiraStatusText">Checking...</span>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <span id="teamsStatus" style="color: #999;">●</span> Teams: <span id="teamsStatusText">Checking...</span>
+                    </div>
+                    <button id="testIntegrationsBtn" class="btn" style="margin-top: 10px; padding: 8px 16px; font-size: 14px;">
+                        Test Integrations
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="calendar-view">
+            <h2>📋 Scheduled Tasks</h2>
+            <div id="eventsList" class="events-list">
+                <div class="loading">Loading tasks...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Initialize Socket.IO
+        const socket = io();
+
+        // DOM elements
+        const taskForm = document.getElementById('taskForm');
+        const eventsList = document.getElementById('eventsList');
+        const notification = document.getElementById('notification');
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadEvents();
+            updateStats();
+            loadIntegrationStatus();
+            
+            // Set default scheduled time to 1 hour from now
+            const now = new Date();
+            now.setHours(now.getHours() + 1);
+            document.getElementById('scheduledTime').value = now.toISOString().slice(0, 16);
+
+            // Add event listener for test integrations button
+            document.getElementById('testIntegrationsBtn').addEventListener('click', testIntegrations);
+        });
+
+        // Handle form submission
+        taskForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(taskForm);
+            const taskData = {
+                title: formData.get('title'),
+                taskType: formData.get('taskType'),
+                priority: formData.get('priority'),
+                scheduledTime: formData.get('scheduledTime'),
+                projectPath: formData.get('projectPath'),
+                description: formData.get('description'),
+                requirements: formData.get('requirements').split('\n').filter(r => r.trim())
+            };
+
+            try {
+                const response = await fetch('/api/calendar/events', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(taskData)
+                });
+
+                if (response.ok) {
+                    showNotification('Task scheduled successfully!', 'success');
+                    taskForm.reset();
+                    loadEvents();
+                    updateStats();
+                } else {
+                    throw new Error('Failed to schedule task');
+                }
+            } catch (error) {
+                showNotification('Error scheduling task: ' + error.message, 'error');
+            }
+        });
+
+        // Load and display events
+        async function loadEvents() {
+            try {
+                const response = await fetch('/api/calendar/events');
+                const events = await response.json();
+                
+                displayEvents(events);
+            } catch (error) {
+                eventsList.innerHTML = '<div class="loading">Error loading tasks</div>';
+            }
+        }
+
+        function displayEvents(events) {
+            if (events.length === 0) {
+                eventsList.innerHTML = '<div class="loading">No tasks scheduled</div>';
+                return;
+            }
+
+            // Sort events by scheduled time
+            events.sort((a, b) => new Date(a.scheduledTime) - new Date(b.scheduledTime));
+
+            const eventsHtml = events.map(event => `
+                <div class="event-item">
+                    <div class="event-title">${event.title}</div>
+                    <div class="event-meta">
+                        <span class="status-badge status-${event.status}">${event.status.replace('_', ' ')}</span>
+                        <span style="margin-left: 15px;">📅 ${new Date(event.scheduledTime).toLocaleString()}</span>
+                        <span style="margin-left: 15px;">🏷️ ${event.taskType}</span>
+                        <span style="margin-left: 15px;">⚡ ${event.priority}</span>
+                    </div>
+                    <div class="event-description">${event.description || 'No description provided'}</div>
+                    ${event.requirements.length > 0 ? `
+                        <div style="margin-top: 10px; font-size: 12px; color: #666;">
+                            <strong>Requirements:</strong> ${event.requirements.join(', ')}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+
+            eventsList.innerHTML = eventsHtml;
+        }
+
+        // Update statistics
+        async function updateStats() {
+            try {
+                const response = await fetch('/api/calendar/events');
+                const events = await response.json();
+                
+                const stats = {
+                    scheduled: events.filter(e => e.status === 'scheduled').length,
+                    inProgress: events.filter(e => e.status === 'in_progress').length,
+                    completed: events.filter(e => e.status === 'completed').length,
+                    failed: events.filter(e => e.status === 'failed').length
+                };
+
+                const total = stats.completed + stats.failed;
+                const successRate = total > 0 ? Math.round((stats.completed / total) * 100) : 0;
+
+                document.getElementById('scheduledCount').textContent = stats.scheduled;
+                document.getElementById('inProgressCount').textContent = stats.inProgress;
+                document.getElementById('completedCount').textContent = stats.completed;
+                document.getElementById('successRate').textContent = successRate + '%';
+            } catch (error) {
+                console.error('Error updating stats:', error);
+            }
+        }
+
+        // Socket.IO event handlers
+        socket.on('task_update', function(data) {
+            loadEvents();
+            updateStats();
+        });
+
+        socket.on('task_completed', function(data) {
+            showNotification(`Task completed: ${data.result.success ? 'Success' : 'Failed'}`, 
+                           data.result.success ? 'success' : 'error');
+            loadEvents();
+            updateStats();
+        });
+
+        socket.on('task_error', function(data) {
+            showNotification(`Task failed: ${data.error}`, 'error');
+            loadEvents();
+            updateStats();
+        });
+
+        // Utility functions
+        function showNotification(message, type = 'success') {
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 5000);
+        }
+
+        // Load integration status
+        async function loadIntegrationStatus() {
+            try {
+                const response = await fetch('/api/integrations/status');
+                const status = await response.json();
+                
+                // Update GitHub status
+                const githubStatus = document.getElementById('githubStatus');
+                const githubStatusText = document.getElementById('githubStatusText');
+                if (status.github.configured) {
+                    githubStatus.style.color = '#4caf50';
+                    githubStatusText.textContent = 'Connected';
+                } else {
+                    githubStatus.style.color = '#f44336';
+                    githubStatusText.textContent = 'Not configured';
+                }
+
+                // Update JIRA status
+                const jiraStatus = document.getElementById('jiraStatus');
+                const jiraStatusText = document.getElementById('jiraStatusText');
+                if (status.jira.configured) {
+                    jiraStatus.style.color = '#4caf50';
+                    jiraStatusText.textContent = 'Connected';
+                } else {
+                    jiraStatus.style.color = '#f44336';
+                    jiraStatusText.textContent = 'Not configured';
+                }
+
+                // Update Teams status
+                const teamsStatus = document.getElementById('teamsStatus');
+                const teamsStatusText = document.getElementById('teamsStatusText');
+                if (status.teams.configured) {
+                    teamsStatus.style.color = '#4caf50';
+                    teamsStatusText.textContent = 'Connected';
+                } else {
+                    teamsStatus.style.color = '#f44336';
+                    teamsStatusText.textContent = 'Not configured';
+                }
+
+            } catch (error) {
+                console.error('Error loading integration status:', error);
+                document.getElementById('githubStatusText').textContent = 'Error';
+                document.getElementById('jiraStatusText').textContent = 'Error';
+            }
+        }
+
+        // Test integrations
+        async function testIntegrations() {
+            const btn = document.getElementById('testIntegrationsBtn');
+            btn.textContent = 'Testing...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/integrations/test', {
+                    method: 'POST'
+                });
+                const results = await response.json();
+
+                // Update GitHub status based on test
+                const githubStatus = document.getElementById('githubStatus');
+                const githubStatusText = document.getElementById('githubStatusText');
+                if (results.github.success) {
+                    githubStatus.style.color = '#4caf50';
+                    githubStatusText.textContent = 'Test passed';
+                    showNotification('GitHub integration test passed!', 'success');
+                } else {
+                    githubStatus.style.color = '#f44336';
+                    githubStatusText.textContent = 'Test failed';
+                    showNotification('GitHub test failed: ' + results.github.error, 'error');
+                }
+
+                // Update JIRA status based on test
+                const jiraStatus = document.getElementById('jiraStatus');
+                const jiraStatusText = document.getElementById('jiraStatusText');
+                if (results.jira.success) {
+                    jiraStatus.style.color = '#4caf50';
+                    jiraStatusText.textContent = 'Test passed';
+                    showNotification('JIRA integration test passed!', 'success');
+                } else {
+                    jiraStatus.style.color = '#f44336';
+                    jiraStatusText.textContent = 'Test failed';
+                    showNotification('JIRA test failed: ' + results.jira.error, 'error');
+                }
+
+                // Update Teams status based on test
+                const teamsStatus = document.getElementById('teamsStatus');
+                const teamsStatusText = document.getElementById('teamsStatusText');
+                if (results.teams.success) {
+                    teamsStatus.style.color = '#4caf50';
+                    teamsStatusText.textContent = 'Test passed';
+                    showNotification('Teams integration test passed!', 'success');
+                } else {
+                    teamsStatus.style.color = '#f44336';
+                    teamsStatusText.textContent = 'Test failed';
+                    showNotification('Teams test failed: ' + results.teams.error, 'error');
+                }
+
+            } catch (error) {
+                showNotification('Integration test failed: ' + error.message, 'error');
+            } finally {
+                btn.textContent = 'Test Integrations';
+                btn.disabled = false;
+            }
+        }
+
+        // Enhanced task completion handler with integration info
+        socket.on('task_completed', function(data) {
+            let message = `Task completed: ${data.result.success ? 'Success' : 'Failed'}`;
+            
+            if (data.integrations) {
+                if (data.integrations.jiraTicket) {
+                    message += ` | JIRA: ${data.integrations.jiraTicket.key}`;
+                }
+                if (data.integrations.pullRequest) {
+                    message += ` | PR: #${data.integrations.pullRequest.prNumber}`;
+                }
+            }
+            
+            showNotification(message, data.result.success ? 'success' : 'error');
+            loadEvents();
+            updateStats();
+        });
+
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+            loadEvents();
+            updateStats();
+            loadIntegrationStatus();
+        }, 30000);
+    </script>
+</body>
+</html>
