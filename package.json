@@ -9,8 +9,8 @@
     "dev": "nodemon src/index.js",
     "test": "jest",
     "build": "webpack --mode production",
-    "docker:build": "docker build -t todo-gpt .",
-    "docker:run": "docker run -p 3000:3000 --env-file .env todo-gpt",
+    "docker:build": "docker build -t sprintops .",
+    "docker:run": "docker run -p 3000:3000 --env-file .env sprintops",
     "docker:compose": "docker-compose up -d",
     "docker:logs": "docker-compose logs -f",
     "docker:stop": "docker-compose down"
@@ -42,11 +42,11 @@
   },
   "keywords": [
     "ai",
+    "sprintops",
+    "agile",
     "automation",
-    "calendar",
-    "development",
-    "assistant"
+    "development"
   ],
-  "author": "Todo-GPT Team",
+  "author": "SprintOps Team",
   "license": "MIT"
 }

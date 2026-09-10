@@ -1,7 +1,7 @@
-# SprintOps Studio 🚀
+# SprintOps 🚀
 > **Autonomous Agile Platform & AI Development Copilot**
 
-SprintOps Studio is an enterprise-grade autonomous agile platform that bridges voice dictation, AI task planning, automated code execution, JIRA ticket status synchronization, GitHub PR management, and Miro-style retrospectives.
+SprintOps is an enterprise-grade autonomous agile platform that bridges voice dictation, AI task planning, automated code execution, JIRA ticket status synchronization, GitHub PR management, and Miro-style retrospectives.
 
 ---
 

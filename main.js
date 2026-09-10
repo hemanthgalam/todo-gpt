@@ -24,7 +24,7 @@ function createWindow() {
     mainWindow = new BrowserWindow({
         width: 1300,
         height: 900,
-        title: 'SprintOps Studio - Autonomous Agile & Development Agent',
+        title: 'SprintOps - Autonomous Agile & Development Agent',
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false
