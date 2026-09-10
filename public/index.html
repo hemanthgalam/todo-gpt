@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SprintOps - Autonomous Agile Platform</title>
+    <title>SprintOps - Autonomous Agile Platform (Teams Calendar)</title>
     <style>
         :root {
             --bg-canvas: #090d13;
@@ -264,6 +264,76 @@
         .view-panel { display: none; }
         .view-panel.active { display: block; }
 
+        /* Teams Interactive Calendar Grid */
+        .teams-calendar-grid {
+            display: grid;
+            grid-template-columns: 65px repeat(7, 1fr);
+            border: 1px solid var(--surface-border);
+            border-radius: 6px;
+            background: var(--bg-canvas);
+            overflow: auto;
+            max-height: 560px;
+        }
+
+        .cal-header-cell {
+            background: var(--surface-card);
+            border-bottom: 1px solid var(--surface-border);
+            border-right: 1px solid var(--surface-border);
+            padding: 10px 6px;
+            text-align: center;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-heading);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .cal-time-cell {
+            background: var(--surface-card);
+            border-bottom: 1px solid var(--surface-border);
+            border-right: 1px solid var(--surface-border);
+            padding: 10px 4px;
+            font-family: var(--font-code);
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .cal-slot-cell {
+            border-bottom: 1px solid var(--surface-border);
+            border-right: 1px solid var(--surface-border);
+            min-height: 54px;
+            padding: 4px;
+            cursor: pointer;
+            transition: background-color 0.15s;
+            position: relative;
+        }
+        .cal-slot-cell:hover {
+            background: var(--surface-hover);
+        }
+
+        .cal-event-block {
+            background: rgba(88, 166, 255, 0.2);
+            border-left: 3px solid var(--accent-blue);
+            border-radius: 4px;
+            padding: 4px 6px;
+            font-size: 0.72rem;
+            color: var(--text-heading);
+            margin-bottom: 3px;
+            cursor: pointer;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .cal-event-feature { border-left-color: var(--accent-blue); background: rgba(88, 166, 255, 0.2); }
+        .cal-event-bugfix { border-left-color: #3fb950; background: rgba(63, 185, 80, 0.2); }
+        .cal-event-refactor { border-left-color: var(--accent-purple); background: rgba(137, 87, 229, 0.2); }
+        .cal-event-urgent { border-left-color: #f85149; background: rgba(248, 81, 73, 0.2); }
+
         /* Antigravity Scheduled Tasks Queue */
         .events-list { display: flex; flex-direction: column; gap: 12px; max-height: 620px; overflow-y: auto; }
         
@@ -470,6 +540,9 @@
                 <button class="nav-item active" onclick="switchNav('tasks-panel', event)">
                     <span>⚡</span> <span>Tasks & Trajectories</span>
                 </button>
+                <button class="nav-item" onclick="switchNav('calendar-panel', event)">
+                    <span>📅</span> <span>Teams Calendar</span>
+                </button>
                 <button class="nav-item" onclick="switchNav('docs-panel', event)">
                     <span>📐</span> <span>Architecture & Docs</span>
                 </button>
@@ -607,6 +680,30 @@
                         <div id="eventsList" class="events-list">
                             <div style="color: var(--text-muted); text-align: center; padding: 30px;">Loading tasks...</div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 8: Teams Interactive Calendar Schedule -->
+            <div id="calendar-panel" class="view-panel">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <h3 style="color: var(--text-heading); font-size: 1rem;" id="calendarMonthHeader">September 2026</h3>
+                            <div style="display: flex; gap: 4px;">
+                                <button class="btn btn-sm" onclick="navigateCalendar(-1)">&lt;</button>
+                                <button class="btn btn-sm" onclick="navigateCalendar(0)">Today</button>
+                                <button class="btn btn-sm" onclick="navigateCalendar(1)">&gt;</button>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-purple btn-sm" onclick="openScheduleModalForTime(new Date())">+ Schedule Task / Meeting</button>
+                        </div>
+                    </div>
+
+                    <div id="teamsCalendarGrid" class="teams-calendar-grid">
+                        <!-- Rendered dynamically by JS -->
                     </div>
                 </div>
             </div>
@@ -811,6 +908,7 @@
             <input type="text" class="cmd-input" id="cmdInput" placeholder="Type a command or search actions... (Esc to cancel)">
             <div class="cmd-list" id="cmdList">
                 <div class="cmd-item" onclick="triggerCmd('tasks')"><span>⚡ Go to Tasks & Trajectories</span><span class="cmd-key">Jump</span></div>
+                <div class="cmd-item" onclick="triggerCmd('calendar')"><span>📅 Go to Teams Calendar</span><span class="cmd-key">Jump</span></div>
                 <div class="cmd-item" onclick="triggerCmd('docs')"><span>📐 Go to Architecture & Docs (Mermaid)</span><span class="cmd-key">Jump</span></div>
                 <div class="cmd-item" onclick="triggerCmd('kanban')"><span>📊 Go to Agile Kanban Board</span><span class="cmd-key">Jump</span></div>
                 <div class="cmd-item" onclick="triggerCmd('retro')"><span>📝 Go to Sprint Retros</span><span class="cmd-key">Jump</span></div>
@@ -997,6 +1095,8 @@
         let currentRetroId = null;
         let activeDocId = null;
         let workspaceDocs = [];
+        let calendarDateOffset = 0;
+        let cachedEvents = [];
 
         // Floating AI Copilot Popup Toggle
         const copilotFab = document.getElementById('copilotFab');
@@ -1047,6 +1147,7 @@
 
             document.getElementById(panelId).classList.add('active');
 
+            if (panelId === 'calendar-panel') renderTeamsCalendar();
             if (panelId === 'docs-panel') loadDocs();
             if (panelId === 'kanban-panel') loadKanbanBoard();
             if (panelId === 'retro-panel') loadRetros();
@@ -1082,6 +1183,7 @@
         function triggerCmd(action) {
             closeCommandPalette();
             if (action === 'tasks') switchNav('tasks-panel');
+            if (action === 'calendar') switchNav('calendar-panel');
             if (action === 'docs') switchNav('docs-panel');
             if (action === 'kanban') switchNav('kanban-panel');
             if (action === 'retro') switchNav('retro-panel');
@@ -1108,6 +1210,92 @@
             document.getElementById('runSecurityScanBtn').addEventListener('click', runSecurityScan);
             document.getElementById('docContentEditor').addEventListener('input', renderMermaidPreview);
         });
+
+        // TEAMS INTERACTIVE CALENDAR ENGINE
+        function navigateCalendar(direction) {
+            if (direction === 0) calendarDateOffset = 0;
+            else calendarDateOffset += direction;
+            renderTeamsCalendar();
+        }
+        window.navigateCalendar = navigateCalendar;
+
+        function renderTeamsCalendar() {
+            const gridContainer = document.getElementById('teamsCalendarGrid');
+            const monthHeader = document.getElementById('calendarMonthHeader');
+
+            const baseDate = new Date();
+            baseDate.setDate(baseDate.getDate() + (calendarDateOffset * 7));
+
+            // Find Monday of active week
+            const dayOfWeek = baseDate.getDay();
+            const distanceToMonday = (dayOfWeek === 0 ? -6 : 1 - dayOfWeek);
+            const monday = new Date(baseDate);
+            monday.setDate(baseDate.getDate() + distanceToMonday);
+
+            const days = [];
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(monday);
+                d.setDate(monday.getDate() + i);
+                days.push(d);
+            }
+
+            monthHeader.textContent = `${monday.toLocaleString('default', { month: 'long', year: 'numeric' })}`;
+
+            let html = `<div class="cal-header-cell">Time</div>`;
+            days.forEach(d => {
+                const dayName = d.toLocaleString('default', { weekday: 'short' });
+                const dateNum = d.getDate();
+                const isToday = d.toDateString() === new Date().toDateString();
+                html += `
+                    <div class="cal-header-cell" style="${isToday ? 'color: var(--accent-blue); font-weight: 700;' : ''}">
+                        ${dayName} ${dateNum}
+                    </div>
+                `;
+            });
+
+            // Hours from 08:00 to 18:00
+            for (let hour = 8; hour <= 18; hour++) {
+                const hourStr = `${hour.toString().padStart(2, '0')}:00`;
+                html += `<div class="cal-time-cell">${hourStr}</div>`;
+
+                days.forEach(dayDate => {
+                    const slotISO = new Date(dayDate.getFullYear(), dayDate.getMonth(), dayDate.getDate(), hour, 0).toISOString();
+                    
+                    // Filter tasks scheduled in this hour slot
+                    const slotEvents = cachedEvents.filter(ev => {
+                        const evDate = new Date(ev.scheduledTime);
+                        return evDate.getFullYear() === dayDate.getFullYear() &&
+                               evDate.getMonth() === dayDate.getMonth() &&
+                               evDate.getDate() === dayDate.getDate() &&
+                               evDate.getHours() === hour;
+                    });
+
+                    const eventsMarkup = slotEvents.map(ev => `
+                        <div class="cal-event-block cal-event-${ev.priority === 'urgent' ? 'urgent' : ev.taskType || 'feature'}" onclick="event.stopPropagation(); executeTaskNow('${ev.id}')" title="${ev.title} (${ev.priority})">
+                            <strong style="font-size: 0.73rem;">${ev.title}</strong>
+                            <span style="font-size: 0.65rem; color: var(--text-muted);">${ev.taskType || 'task'} • ${(ev.priority || 'medium').toUpperCase()}</span>
+                        </div>
+                    `).join('');
+
+                    html += `
+                        <div class="cal-slot-cell" onclick="openScheduleModalForTime('${slotISO}')">
+                            ${eventsMarkup}
+                        </div>
+                    `;
+                });
+            }
+
+            gridContainer.innerHTML = html;
+        }
+
+        function openScheduleModalForTime(isoTimeStr) {
+            switchNav('tasks-panel');
+            const targetDate = new Date(isoTimeStr);
+            document.getElementById('scheduledTime').value = targetDate.toISOString().slice(0, 16);
+            document.getElementById('title').focus();
+            showNotification(`Pre-filled task schedule time for ${targetDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`, 'success');
+        }
+        window.openScheduleModalForTime = openScheduleModalForTime;
 
         // Workspaces & Project Tree
         async function loadWorkspaces() {
@@ -1714,7 +1902,7 @@
                     taskForm.reset();
                     document.getElementById('scheduledTime').value = new Date(Date.now() + 3600000).toISOString().slice(0, 16);
                     document.getElementById('projectPath').value = currentActiveWorkspace ? currentActiveWorkspace.projectPath : './';
-                    loadEvents();
+                    await loadEvents();
                     updateStats();
                 } else {
                     throw new Error('Failed to schedule task');
@@ -1724,12 +1912,14 @@
             }
         });
 
-        // Load Antigravity Scheduled Tasks Trajectories
+        // Load Antigravity Scheduled Tasks Trajectories & Sync Teams Calendar
         async function loadEvents() {
             try {
                 const response = await fetch('/api/calendar/events');
                 const events = await response.json();
+                cachedEvents = events;
                 displayEvents(events);
+                renderTeamsCalendar();
             } catch (error) {
                 eventsList.innerHTML = '<div style="color: #f85149; text-align: center; padding: 20px;">Error loading task trajectories</div>';
             }
