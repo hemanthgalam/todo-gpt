@@ -3,13 +3,17 @@ const Logger = require("../utils/Logger");
 
 class TeamsIntegration {
   constructor() {
-    this.webhookUrl = process.env.TEAMS_WEBHOOK_URL;
-    this.channelName = process.env.TEAMS_CHANNEL_NAME || "Development";
     this.logger = Logger;
+  }
 
-    if (!this.webhookUrl) {
-      console.warn("Teams integration not configured. Set TEAMS_WEBHOOK_URL");
-    }
+  get webhookUrl() {
+    const ConfigManager = require('../utils/ConfigManager');
+    return ConfigManager.get('TEAMS_WEBHOOK_URL');
+  }
+
+  get channelName() {
+    const ConfigManager = require('../utils/ConfigManager');
+    return ConfigManager.get('TEAMS_CHANNEL_NAME', 'Development');
   }
 
   isConfigured() {

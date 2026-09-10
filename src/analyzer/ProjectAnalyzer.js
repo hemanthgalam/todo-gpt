@@ -7,10 +7,21 @@ class ProjectAnalyzer {
         this.configFiles = ['package.json', 'requirements.txt', 'Cargo.toml', 'pom.xml', 'go.mod'];
     }
 
-    async analyze(projectPath) {
+    async analyze(targetPath) {
         try {
+            let resolvedPath = targetPath || './';
+            if (!await fs.pathExists(resolvedPath)) {
+                const absoluteCheck = path.resolve(process.cwd(), resolvedPath);
+                if (await fs.pathExists(absoluteCheck)) {
+                    resolvedPath = absoluteCheck;
+                } else {
+                    console.warn(`Project path "${targetPath}" not found. Falling back to project root "./".`);
+                    resolvedPath = './';
+                }
+            }
+
             const analysis = {
-                projectPath,
+                projectPath: resolvedPath,
                 techStack: [],
                 dependencies: [],
                 fileStructure: '',
@@ -20,28 +31,23 @@ class ProjectAnalyzer {
                 analyzedAt: new Date()
             };
 
-            // Check if project path exists
-            if (!await fs.pathExists(projectPath)) {
-                throw new Error(`Project path does not exist: ${projectPath}`);
-            }
-
             // Analyze project structure
-            analysis.fileStructure = await this.generateFileStructure(projectPath);
+            analysis.fileStructure = await this.generateFileStructure(resolvedPath);
             
             // Detect technology stack
-            analysis.techStack = await this.detectTechStack(projectPath);
+            analysis.techStack = await this.detectTechStack(resolvedPath);
             
             // Extract dependencies
-            analysis.dependencies = await this.extractDependencies(projectPath);
+            analysis.dependencies = await this.extractDependencies(resolvedPath);
             
             // Analyze code patterns
-            analysis.patterns = await this.analyzeCodePatterns(projectPath);
+            analysis.patterns = await this.analyzeCodePatterns(resolvedPath);
             
             // Generate code analysis
-            analysis.codeAnalysis = await this.generateCodeAnalysis(projectPath);
+            analysis.codeAnalysis = await this.generateCodeAnalysis(resolvedPath);
             
             // Calculate metrics
-            analysis.metrics = await this.calculateMetrics(projectPath);
+            analysis.metrics = await this.calculateMetrics(resolvedPath);
 
             return analysis;
             

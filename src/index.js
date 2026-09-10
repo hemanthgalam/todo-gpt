@@ -12,6 +12,12 @@ const AIAgent = require('./agent/AIAgent');
 const ProjectAnalyzer = require('./analyzer/ProjectAnalyzer');
 const TaskExecutor = require('./executor/TaskExecutor');
 const IntegrationManager = require('./integrations/IntegrationManager');
+const WorkspaceManager = require('./workspace/WorkspaceManager');
+const RetroManager = require('./retro/RetroManager');
+const DocManager = require('./docs/DocManager');
+const KanbanManager = require('./kanban/KanbanManager');
+const SecurityScanner = require('./security/SecurityScanner');
+const VelocityPredictor = require('./analytics/VelocityPredictor');
 
 class TodoGPT {
     constructor() {
@@ -21,11 +27,17 @@ class TodoGPT {
             cors: { origin: "*", methods: ["GET", "POST"] }
         });
         
+        this.workspaceManager = new WorkspaceManager();
+        this.retroManager = new RetroManager();
+        this.docManager = new DocManager();
+        this.kanbanManager = new KanbanManager();
+        this.securityScanner = new SecurityScanner();
+        this.velocityPredictor = new VelocityPredictor();
         this.calendarManager = new CalendarManager();
         this.aiAgent = new AIAgent();
         this.projectAnalyzer = new ProjectAnalyzer();
         this.taskExecutor = new TaskExecutor();
-        this.integrationManager = new IntegrationManager();
+        this.integrationManager = new IntegrationManager(this);
         
         this.setupMiddleware();
         this.setupRoutes();
@@ -43,10 +55,307 @@ class TodoGPT {
     }
 
     setupRoutes() {
-        // Calendar routes
+        const multer = require('multer');
+        const upload = multer({ dest: 'uploads/' });
+        const fs = require('fs');
+        const { GoogleGenerativeAI } = require('@google/generative-ai');
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+
+        // Audio transcription route utilizing Gemini!
+        this.app.post('/api/speech/transcribe', upload.single('audio'), async (req, res) => {
+            try {
+                if (!req.file) throw new Error("No audio file provided");
+                
+                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-001" });
+                const audioData = fs.readFileSync(req.file.path).toString("base64");
+                
+                const result = await model.generateContent([
+                    "Please directly transcribe this short audio command into exactly what was spoken with punctuation. If you do not hear speech, return an empty string.",
+                    {
+                        inlineData: {
+                            data: audioData,
+                            mimeType: "audio/webm"
+                        }
+                    }
+                ]);
+                
+                fs.unlinkSync(req.file.path); // clean up
+                res.json({ text: result.response.text() });
+            } catch (error) {
+                console.error('Transcription error:', error);
+                res.status(500).json({ error: error.message });
+            }
+        });
+
+        // Workspace routes
+        this.app.get('/api/workspaces', async (req, res) => {
+            try {
+                const workspacesData = await this.workspaceManager.getWorkspaces();
+                res.json(workspacesData);
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
+        this.app.post('/api/workspaces', async (req, res) => {
+            try {
+                const newWs = await this.workspaceManager.createWorkspace(req.body);
+                res.json(newWs);
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
+        this.app.put('/api/workspaces/:id', async (req, res) => {
+            try {
+                const updated = await this.workspaceManager.updateWorkspace(req.params.id, req.body);
+                res.json(updated);
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
+        this.app.delete('/api/workspaces/:id', async (req, res) => {
+            try {
+                const data = await this.workspaceManager.deleteWorkspace(req.params.id);
+                res.json(data);
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
+        this.app.post('/api/workspaces/select', async (req, res) => {
+            try {
+                const data = await this.workspaceManager.setActiveWorkspace(req.body.id);
+                res.json(data);
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
+        this.app.post('/api/workspaces/:id/invite', async (req, res) => {
+            try {
+                const ws = await this.workspaceManager.inviteCollaborator(req.params.id, req.body.email);
+                res.json(ws);
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
+        this.app.delete('/api/workspaces/:id/invite', async (req, res) => {
+            try {
+                const ws = await this.workspaceManager.removeCollaborator(req.params.id, req.body.email);
+                res.json(ws);
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
+        // Sprint Retrospectives routes
+        this.app.get('/api/retros', async (req, res) => {
+            try {
+                const activeWs = await this.workspaceManager.getActiveWorkspace();
+                const retros = await this.retroManager.getRetros(activeWs ? activeWs.id : null);
+                res.json(retros);
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
+        this.app.post('/api/retros', async (req, res) => {
+            try {
+                const activeWs = await this.workspaceManager.getActiveWorkspace();
+                const retro = await this.retroManager.createRetro(
+                    req.body.workspaceId || (activeWs ? activeWs.id : 'ws-default'),
+                    req.body.sprintName
+                );
+                res.json(retro);
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
+        this.app.get('/api/retros/:id', async (req, res) => {
+            try {
+                const retro = await this.retroManager.getRetro(req.params.id);
+                if (!retro) return res.status(404).json({ error: 'Retro not found' });
+                res.json(retro);
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
+        this.app.post('/api/retros/:id/cards', async (req, res) => {
+            try {
+                const retro = await this.retroManager.addCard(
+                    req.params.id,
+                    req.body.columnKey,
+                    req.body.text,
+                    req.body.author
+                );
+                res.json(retro);
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
+        this.app.post('/api/retros/:id/cards/:cardId/vote', async (req, res) => {
+            try {
+                const retro = await this.retroManager.voteCard(
+                    req.params.id,
+                    req.body.columnKey,
+                    req.params.cardId
+                );
+                res.json(retro);
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
+        this.app.delete('/api/retros/:id/cards/:cardId', async (req, res) => {
+            try {
+                const retro = await this.retroManager.deleteCard(
+                    req.params.id,
+                    req.body.columnKey,
+                    req.params.cardId
+                );
+                res.json(retro);
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
+        this.app.post('/api/retros/:id/ai-analyze', async (req, res) => {
+            try {
+                const activeWs = await this.workspaceManager.getActiveWorkspace();
+                const taskHistory = await this.calendarManager.getEvents(activeWs ? activeWs.id : null);
+                const retro = await this.retroManager.generateAIRetroAnalysis(req.params.id, taskHistory, this.aiAgent);
+                res.json(retro);
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
+        this.app.post('/api/retros/:id/convert-action', async (req, res) => {
+            try {
+                const activeWs = await this.workspaceManager.getActiveWorkspace();
+                const { cardText } = req.body;
+                
+                const taskData = {
+                    workspaceId: activeWs ? activeWs.id : 'ws-default',
+                    title: cardText,
+                    taskType: 'feature',
+                    priority: 'high',
+                    scheduledTime: new Date(Date.now() + 3600000).toISOString(),
+                    projectPath: activeWs ? activeWs.projectPath : './',
+                    description: `Converted directly from Sprint Retro Action Item: "${cardText}"`,
+                    requirements: ['Execute action item from retrospective']
+                };
+
+                const createdTask = await this.calendarManager.createEvent(taskData);
+                res.json({ success: true, task: createdTask });
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
+        // Architecture & Docs (Mermaid) routes
+        this.app.get('/api/docs', async (req, res) => {
+            try {
+                const activeWs = await this.workspaceManager.getActiveWorkspace();
+                const docs = await this.docManager.getDocs(activeWs ? activeWs.id : null);
+                res.json(docs);
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
+        this.app.post('/api/docs', async (req, res) => {
+            try {
+                const activeWs = await this.workspaceManager.getActiveWorkspace();
+                const doc = await this.docManager.createDoc({
+                    ...req.body,
+                    workspaceId: req.body.workspaceId || (activeWs ? activeWs.id : 'ws-default')
+                });
+                res.json(doc);
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
+        this.app.delete('/api/docs/:id', async (req, res) => {
+            try {
+                const result = await this.docManager.deleteDoc(req.params.id);
+                res.json(result);
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
+        this.app.post('/api/docs/generate-mermaid', async (req, res) => {
+            try {
+                const activeWs = await this.workspaceManager.getActiveWorkspace();
+                const doc = await this.docManager.generateAIMermaidDiagram(
+                    activeWs ? activeWs.id : 'ws-default',
+                    req.body.prompt,
+                    req.body.diagramType || 'sequence',
+                    this.aiAgent
+                );
+                res.json(doc);
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
+        // Kanban Board routes
+        this.app.get('/api/kanban', async (req, res) => {
+            try {
+                const activeWs = await this.workspaceManager.getActiveWorkspace();
+                const board = await this.kanbanManager.getBoard(activeWs ? activeWs.id : null, this.calendarManager);
+                res.json(board);
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
+        this.app.post('/api/kanban/move', async (req, res) => {
+            try {
+                const result = await this.kanbanManager.moveTask(req.body.taskId, req.body.targetColumn, this.calendarManager);
+                res.json(result);
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
+        // Security Scanner routes
+        this.app.post('/api/security/scan', async (req, res) => {
+            try {
+                const activeWs = await this.workspaceManager.getActiveWorkspace();
+                const projectPath = activeWs ? activeWs.projectPath : './';
+                const results = await this.securityScanner.scanWorkspace(projectPath);
+                res.json(results);
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
+        // Velocity Predictor routes
+        this.app.get('/api/analytics/velocity', async (req, res) => {
+            try {
+                const activeWs = await this.workspaceManager.getActiveWorkspace();
+                const events = await this.calendarManager.getEvents(activeWs ? activeWs.id : null);
+                const velocity = this.velocityPredictor.calculateVelocity(events);
+                res.json(velocity);
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
+        // Calendar routes (workspace scoped)
         this.app.get('/api/calendar/events', async (req, res) => {
             try {
-                const events = await this.calendarManager.getEvents();
+                const activeWs = await this.workspaceManager.getActiveWorkspace();
+                const events = await this.calendarManager.getEvents(activeWs ? activeWs.id : null);
                 res.json(events);
             } catch (error) {
                 res.status(500).json({ error: error.message });
@@ -55,7 +364,12 @@ class TodoGPT {
 
         this.app.post('/api/calendar/events', async (req, res) => {
             try {
-                const event = await this.calendarManager.createEvent(req.body);
+                const activeWs = await this.workspaceManager.getActiveWorkspace();
+                const eventData = {
+                    ...req.body,
+                    workspaceId: req.body.workspaceId || (activeWs ? activeWs.id : 'ws-default')
+                };
+                const event = await this.calendarManager.createEvent(eventData);
                 res.json(event);
             } catch (error) {
                 res.status(500).json({ error: error.message });
@@ -157,6 +471,78 @@ class TodoGPT {
                 const stats = await this.generateDailyStats();
                 const success = await this.integrationManager.teams.notifyDailyDigest(stats);
                 res.json({ success, stats });
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
+        // Config routes
+        this.app.get('/api/config', (req, res) => {
+            const ConfigManager = require('./utils/ConfigManager');
+            res.json(ConfigManager.getClientSettings());
+        });
+
+        this.app.post('/api/config', async (req, res) => {
+            try {
+                const ConfigManager = require('./utils/ConfigManager');
+                await ConfigManager.save(req.body);
+                res.json({ success: true, message: 'Settings saved successfully.' });
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
+        // Cancel / delete event route
+        this.app.delete('/api/calendar/events/:id', async (req, res) => {
+            try {
+                const events = await this.calendarManager.getEvents();
+                const eventIndex = events.findIndex(e => e.id === req.params.id);
+                if (eventIndex === -1) {
+                    return res.status(404).json({ error: 'Task not found' });
+                }
+                const cancelledEvent = events[eventIndex];
+                events.splice(eventIndex, 1);
+                
+                const fs = require('fs-extra');
+                await fs.writeJson(this.calendarManager.eventsFile, events, { spaces: 2 });
+                
+                this.io.emit('task_update', { 
+                    taskId: req.params.id,
+                    status: 'cancelled',
+                    message: 'Task cancelled by user'
+                });
+                
+                res.json({ success: true, message: 'Task cancelled successfully.' });
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
+        // Manually execute event immediately route
+        this.app.post('/api/calendar/events/:id/execute', async (req, res) => {
+            try {
+                const events = await this.calendarManager.getEvents();
+                const event = events.find(e => e.id === req.params.id);
+                if (!event) {
+                    return res.status(404).json({ error: 'Task not found' });
+                }
+                // Run in background so request returns immediately
+                this.executeTask(event).catch(err => console.error("Manual execution error:", err));
+                res.json({ success: true, message: 'Task execution started.' });
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
+        // Speech semantic command parsing route
+        this.app.post('/api/speech/parse-command', async (req, res) => {
+            try {
+                const text = req.body.text;
+                if (!text) {
+                    throw new Error("No command text provided");
+                }
+                const parsedTask = await this.aiAgent.parseSpeechCommand(text);
+                res.json(parsedTask);
             } catch (error) {
                 res.status(500).json({ error: error.message });
             }
@@ -383,14 +769,16 @@ class TodoGPT {
 
     start(port = 3000) {
         this.server.listen(port, () => {
-            console.log(`Todo-GPT server running on port ${port}`);
+            console.log(`SprintOps server running on port ${port}`);
             console.log(`Web interface: http://localhost:${port}`);
         });
     }
 }
 
-// Start the application
-const todoGPT = new TodoGPT();
-todoGPT.start();
+// Start the application if run directly
+if (require.main === module && process.env.NODE_ENV !== 'test') {
+    const todoGPT = new TodoGPT();
+    todoGPT.start();
+}
 
 module.exports = TodoGPT;

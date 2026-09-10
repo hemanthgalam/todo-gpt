@@ -14,9 +14,13 @@ class CalendarManager {
         }
     }
 
-    async getEvents() {
+    async getEvents(workspaceId = null) {
         try {
-            return await fs.readJson(this.eventsFile);
+            const events = await fs.readJson(this.eventsFile);
+            if (workspaceId) {
+                return events.filter(e => !e.workspaceId || e.workspaceId === workspaceId);
+            }
+            return events;
         } catch (error) {
             console.error('Error reading events:', error);
             return [];
@@ -28,6 +32,7 @@ class CalendarManager {
         
         const newEvent = {
             id: this.generateId(),
+            workspaceId: eventData.workspaceId || 'ws-default',
             title: eventData.title,
             description: eventData.description,
             projectPath: eventData.projectPath,

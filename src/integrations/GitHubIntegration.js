@@ -5,10 +5,13 @@ const { execSync } = require('child_process');
 
 class GitHubIntegration {
     constructor() {
-        this.octokit = new Octokit({
-            auth: process.env.GITHUB_TOKEN
-        });
         this.defaultBranch = 'main';
+    }
+
+    get octokit() {
+        const ConfigManager = require('../utils/ConfigManager');
+        const token = ConfigManager.get('GITHUB_TOKEN');
+        return new Octokit({ auth: token });
     }
 
     async createPullRequest(taskResult, jiraTicket = null) {

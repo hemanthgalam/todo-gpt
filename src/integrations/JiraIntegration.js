@@ -2,16 +2,30 @@ const axios = require('axios');
 
 class JiraIntegration {
     constructor() {
-        this.baseUrl = process.env.JIRA_BASE_URL;
-        this.email = process.env.JIRA_EMAIL;
-        this.apiToken = process.env.JIRA_API_TOKEN;
-        this.projectKey = process.env.JIRA_PROJECT_KEY;
-        
-        if (!this.baseUrl || !this.email || !this.apiToken) {
-            console.warn('JIRA integration not configured. Set JIRA_BASE_URL, JIRA_EMAIL, and JIRA_API_TOKEN');
-        }
+    }
 
-        this.client = axios.create({
+    get baseUrl() {
+        const ConfigManager = require('../utils/ConfigManager');
+        return ConfigManager.get('JIRA_BASE_URL');
+    }
+
+    get email() {
+        const ConfigManager = require('../utils/ConfigManager');
+        return ConfigManager.get('JIRA_EMAIL');
+    }
+
+    get apiToken() {
+        const ConfigManager = require('../utils/ConfigManager');
+        return ConfigManager.get('JIRA_API_TOKEN');
+    }
+
+    get projectKey() {
+        const ConfigManager = require('../utils/ConfigManager');
+        return ConfigManager.get('JIRA_PROJECT_KEY');
+    }
+
+    get client() {
+        return axios.create({
             baseURL: `${this.baseUrl}/rest/api/3`,
             auth: {
                 username: this.email,
@@ -363,12 +377,12 @@ class JiraIntegration {
         try {
             const { issue, changelog } = webhookData;
             
-            if (!issue) return;
+            if (!issue) return null;
 
             // Check if this is a Todo-GPT created ticket
             const labels = issue.fields.labels || [];
             if (!labels.some(label => label === 'todo-gpt')) {
-                return;
+                return null;
             }
 
             // Handle status changes
@@ -376,14 +390,16 @@ class JiraIntegration {
                 const statusChange = changelog.items.find(item => item.field === 'status');
                 if (statusChange) {
                     console.log(`JIRA ticket ${issue.key} status changed: ${statusChange.fromString} → ${statusChange.toString}`);
-                    
-                    // You can add logic here to sync back to Todo-GPT
-                    // For example, if ticket is moved to "Done", mark the task as completed
+                    return {
+                        key: issue.key,
+                        status: statusChange.toString // e.g. "In Progress", "Done", "To Do"
+                    };
                 }
             }
-
+            return null;
         } catch (error) {
             console.error('Error handling JIRA webhook:', error);
+            return null;
         }
     }
 }

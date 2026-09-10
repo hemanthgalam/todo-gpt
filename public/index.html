@@ -3,373 +3,1696 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Todo-GPT - AI Project Assistant</title>
+    <title>SprintOps Studio - Autonomous Agile Platform (Antigravity Layout)</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --bg-canvas: #090d13;
+            --surface-card: #121820;
+            --surface-hover: #1c232d;
+            --surface-border: #212833;
+            --input-border: #303846;
+            --input-bg: #090d13;
+            --text-heading: #f0f6fc;
+            --text-body: #c9d1d9;
+            --text-muted: #8b949e;
+            --accent-blue: #58a6ff;
+            --accent-green: #238636;
+            --accent-green-hover: #2ea043;
+            --accent-red: #da3633;
+            --accent-purple: #8957e5;
+            --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+            --font-code: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #333;
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-main); }
+        body { background-color: var(--bg-canvas); color: var(--text-body); min-height: 100vh; display: flex; overflow: hidden; }
+
+        /* Gemini Antigravity Left Sidebar */
+        .sidebar {
+            width: 270px;
+            background: #0d1117;
+            border-right: 1px solid var(--surface-border);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100vh;
+            flex-shrink: 0;
+            z-index: 100;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
+        .sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--surface-border);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 40px;
+        .brand-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-heading);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: -0.3px;
         }
 
-        .header h1 {
-            font-size: 3rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #3fb950;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #3fb950;
         }
 
-        .header p {
-            font-size: 1.2rem;
-            opacity: 0.9;
+        /* Antigravity Active Project Box */
+        .project-box {
+            background: var(--surface-card);
+            border: 1px solid var(--input-border);
+            border-radius: 6px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
 
-        .dashboard {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-bottom: 40px;
-        }
+        .project-name { font-size: 0.83rem; font-weight: 600; color: var(--text-heading); display: flex; align-items: center; gap: 6px; }
+        .project-path { font-family: var(--font-code); font-size: 0.7rem; color: var(--accent-blue); word-break: break-all; }
 
-        .card {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-        }
-
-        .card h2 {
-            color: #667eea;
-            margin-bottom: 20px;
-            font-size: 1.5rem;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #555;
-        }
-
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e1e5e9;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s ease;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
+        .cmd-bar-btn {
+            background: var(--surface-card);
+            border: 1px solid var(--input-border);
+            color: var(--text-muted);
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 0.78rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             cursor: pointer;
-            transition: transform 0.2s ease;
+            transition: all 0.15s;
         }
+        .cmd-bar-btn:hover { border-color: var(--accent-blue); color: var(--text-heading); }
+        .cmd-key { background: #21262d; border: 1px solid var(--input-border); padding: 1px 5px; border-radius: 4px; font-family: var(--font-code); font-size: 0.7rem; }
 
-        .btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .calendar-view {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-
-        .events-list {
-            max-height: 400px;
+        .nav-menu {
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
             overflow-y: auto;
         }
 
-        .event-item {
-            background: #f8f9fa;
-            border-left: 4px solid #667eea;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 8px;
+        .nav-item {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.15s ease;
         }
 
-        .event-title {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 5px;
+        .nav-item:hover { background: var(--surface-hover); color: var(--text-heading); }
+        .nav-item.active { background: rgba(88, 166, 255, 0.1); color: var(--accent-blue); font-weight: 600; }
+
+        .sidebar-footer {
+            padding: 14px;
+            border-top: 1px solid var(--surface-border);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
-        .event-meta {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 10px;
+        /* App Main Area */
+        .app-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            padding-right: 0;
         }
 
-        .event-description {
-            font-size: 14px;
-            color: #555;
+        .top-bar {
+            height: 52px;
+            background: #0d1117;
+            border-bottom: 1px solid var(--surface-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            flex-shrink: 0;
         }
 
-        .status-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
+        .breadcrumb {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .breadcrumb-active { color: var(--text-heading); font-weight: 600; }
+
+        .top-right { display: flex; align-items: center; gap: 10px; }
+
+        .model-pill {
+            font-family: var(--font-code);
+            font-size: 0.72rem;
+            color: #a5d6ff;
+            background: rgba(165, 214, 255, 0.1);
+            border: 1px solid rgba(165, 214, 255, 0.2);
+            padding: 3px 8px;
+            border-radius: 12px;
         }
 
-        .status-scheduled {
-            background: #e3f2fd;
-            color: #1976d2;
+        .btn {
+            background-color: #21262d;
+            color: var(--text-heading);
+            border: 1px solid var(--input-border);
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background-color 0.15s;
+        }
+        .btn:hover { background-color: #30363d; }
+        .btn-primary { background-color: var(--accent-green); color: #ffffff; border-color: rgba(240, 246, 252, 0.1); }
+        .btn-primary:hover { background-color: var(--accent-green-hover); }
+        .btn-purple { background-color: var(--accent-purple); color: #ffffff; border: none; }
+        .btn-purple:hover { background-color: #9e6aef; }
+        .btn-danger { background-color: rgba(218, 54, 51, 0.15); color: #f85149; border: 1px solid rgba(248, 81, 73, 0.4); }
+        .btn-danger:hover { background-color: var(--accent-red); color: #ffffff; }
+        .btn-sm { padding: 3px 8px; font-size: 0.75rem; }
+
+        /* Viewport Container */
+        .viewport {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
         }
 
-        .status-in-progress {
-            background: #fff3e0;
-            color: #f57c00;
+        .card {
+            background: var(--surface-card);
+            border: 1px solid var(--surface-border);
+            border-radius: 6px;
+            padding: 18px;
+            margin-bottom: 20px;
         }
 
-        .status-completed {
-            background: #e8f5e8;
-            color: #388e3c;
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--surface-border);
+        }
+        .card-title { font-size: 0.92rem; font-weight: 600; color: var(--text-heading); }
+
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 0.78rem; font-weight: 600; color: var(--text-heading); }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 6px;
+            padding: 8px 10px;
+            color: var(--text-heading);
+            font-size: 0.83rem;
+            outline: none;
+        }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--accent-blue); }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        /* Voice Bar */
+        .voice-section {
+            background: var(--bg-canvas);
+            border: 1px solid var(--input-border);
+            border-radius: 6px;
+            padding: 10px 14px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .waveform { display: flex; align-items: center; gap: 3px; height: 20px; cursor: pointer; }
+        .wave-bar { width: 3px; height: 8px; background: var(--accent-blue); border-radius: 1px; }
+        .recording .wave-bar { animation: wave 0.8s infinite ease-in-out alternate; }
+        .recording .wave-bar:nth-child(1) { animation-delay: 0.1s; }
+        .recording .wave-bar:nth-child(2) { animation-delay: 0.3s; }
+        .recording .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+        .recording .wave-bar:nth-child(4) { animation-delay: 0.4s; }
+        @keyframes wave { 0% { height: 6px; } 100% { height: 18px; background: #79c0ff; } }
+
+        /* View Panels */
+        .view-panel { display: none; }
+        .view-panel.active { display: block; }
+
+        /* Antigravity Scheduled Tasks Queue */
+        .events-list { display: flex; flex-direction: column; gap: 12px; max-height: 620px; overflow-y: auto; }
+        
+        .ag-task-card {
+            background: var(--bg-canvas);
+            border: 1px solid var(--surface-border);
+            border-left: 4px solid var(--accent-blue);
+            border-radius: 6px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: border-color 0.15s;
+        }
+        .ag-task-card.status-completed { border-left-color: #3fb950; }
+        .ag-task-card.status-in_progress { border-left-color: #d29922; }
+        .ag-task-card.status-failed { border-left-color: #f85149; }
+
+        .ag-card-top { display: flex; justify-content: space-between; align-items: center; }
+        .ag-task-title { font-size: 0.9rem; font-weight: 600; color: var(--text-heading); }
+        .ag-meta-row { display: flex; gap: 12px; font-size: 0.75rem; color: var(--text-muted); align-items: center; flex-wrap: wrap; }
+        .ag-path-pill { font-family: var(--font-code); color: var(--accent-blue); background: rgba(88, 166, 255, 0.1); padding: 2px 6px; border-radius: 4px; }
+        
+        .ag-steps-box {
+            background: var(--surface-card);
+            border: 1px solid var(--surface-border);
+            border-radius: 4px;
+            padding: 8px 10px;
+            font-size: 0.75rem;
+            color: var(--text-body);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
 
-        .status-failed {
-            background: #ffebee;
-            color: #d32f2f;
-        }
+        .status-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.68rem; font-weight: 600; text-transform: uppercase; }
+        .status-scheduled { background: rgba(56, 139, 253, 0.15); color: var(--accent-blue); border: 1px solid rgba(56, 139, 253, 0.4); }
+        .status-in_progress, .status-in-progress { background: rgba(210, 153, 34, 0.15); color: #d29922; border: 1px solid rgba(210, 153, 34, 0.4); }
+        .status-completed { background: rgba(46, 160, 67, 0.15); color: #3fb950; border: 1px solid rgba(46, 160, 67, 0.4); }
+        .status-failed { background: rgba(248, 81, 73, 0.15); color: #f85149; border: 1px solid rgba(248, 81, 73, 0.4); }
 
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-        }
+        /* Architecture & Docs Workspace */
+        .docs-layout { display: grid; grid-template-columns: 260px 1fr; gap: 16px; min-height: 540px; }
+        .docs-sidebar { background: var(--bg-canvas); border: 1px solid var(--surface-border); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+        .doc-item-btn { background: var(--surface-card); border: 1px solid var(--surface-border); border-radius: 4px; padding: 10px; font-size: 0.78rem; color: var(--text-heading); text-align: left; cursor: pointer; transition: border-color 0.15s; }
+        .doc-item-btn:hover, .doc-item-btn.active { border-color: var(--accent-blue); color: var(--accent-blue); }
+        .docs-main { display: flex; flex-direction: column; gap: 12px; }
+        .mermaid-preview { background: var(--bg-canvas); border: 1px solid var(--surface-border); border-radius: 6px; padding: 20px; min-height: 320px; overflow: auto; display: flex; justify-content: center; align-items: center; }
 
-        .notification {
+        /* Agile Kanban Board */
+        .kanban-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+        .kanban-col { background: var(--bg-canvas); border: 1px solid var(--surface-border); border-radius: 6px; padding: 14px; display: flex; flex-direction: column; min-height: 520px; }
+        .kanban-col-header { font-size: 0.8rem; font-weight: 600; padding-bottom: 8px; margin-bottom: 12px; border-bottom: 2px solid var(--surface-border); display: flex; justify-content: space-between; align-items: center; }
+        .kb-count { background: #21262d; padding: 1px 6px; border-radius: 10px; font-size: 0.7rem; color: var(--text-muted); }
+        .kb-backlog { border-bottom-color: var(--text-muted); color: var(--text-muted); }
+        .kb-progress { border-bottom-color: #d29922; color: #d29922; }
+        .kb-review { border-bottom-color: var(--accent-blue); color: var(--accent-blue); }
+        .kb-done { border-bottom-color: #3fb950; color: #3fb950; }
+        .kanban-cards-list { display: flex; flex-direction: column; gap: 10px; flex: 1; overflow-y: auto; }
+        .kanban-card { background: var(--surface-card); border: 1px solid var(--surface-border); border-radius: 6px; padding: 12px; font-size: 0.8rem; }
+
+        /* Terminal Logs */
+        .terminal-box { background: #090d13; border: 1px solid var(--surface-border); border-radius: 6px; padding: 14px; font-family: var(--font-code); font-size: 0.78rem; color: var(--text-body); height: 540px; overflow-y: auto; }
+        .log-entry { margin-bottom: 4px; word-break: break-all; }
+        .log-time { color: var(--text-muted); margin-right: 6px; }
+        .log-status { color: var(--accent-blue); }
+        .log-error { color: #f85149; }
+
+        /* Miro Sprint Retros Board */
+        .retro-header-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 12px; }
+        .ai-banner { background: rgba(137, 87, 229, 0.12); border: 1px solid rgba(137, 87, 229, 0.3); border-radius: 6px; padding: 12px 14px; margin-bottom: 16px; font-size: 0.82rem; color: var(--text-heading); line-height: 1.4; }
+        .retro-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+        .retro-col { background: var(--bg-canvas); border: 1px solid var(--surface-border); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; min-height: 440px; }
+        .retro-col-header { font-size: 0.82rem; font-weight: 600; padding-bottom: 8px; margin-bottom: 10px; border-bottom: 2px solid var(--surface-border); display: flex; align-items: center; justify-content: space-between; }
+        .col-went-well { border-bottom-color: #3fb950; color: #3fb950; }
+        .col-did-not-go { border-bottom-color: #f85149; color: #f85149; }
+        .col-action-items { border-bottom-color: var(--accent-blue); color: var(--accent-blue); }
+        .col-ideas { border-bottom-color: var(--accent-purple); color: #a5d6ff; }
+        .retro-cards-list { display: flex; flex-direction: column; gap: 8px; flex: 1; overflow-y: auto; }
+        .sticky-card { background: var(--surface-card); border: 1px solid var(--surface-border); border-left: 3px solid var(--surface-border); border-radius: 4px; padding: 10px; font-size: 0.8rem; color: var(--text-heading); line-height: 1.4; }
+        .sticky-went-well { border-left-color: #3fb950; }
+        .sticky-did-not-go { border-left-color: #f85149; }
+        .sticky-action-items { border-left-color: var(--accent-blue); }
+        .sticky-ideas { border-left-color: var(--accent-purple); }
+        .card-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--surface-border); font-size: 0.72rem; color: var(--text-muted); }
+
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
+        .stat-card { background: var(--bg-canvas); border: 1px solid var(--surface-border); border-radius: 6px; padding: 14px; text-align: center; }
+        .stat-value { font-size: 1.4rem; font-weight: 700; color: var(--text-heading); margin-top: 4px; }
+        .stat-label { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* Floating AI Copilot Popup Drawer */
+        .agent-iframe {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #4caf50;
-            color: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            transform: translateX(400px);
-            transition: transform 0.3s ease;
+            bottom: 86px;
+            right: 24px;
+            width: 400px;
+            height: 580px;
+            border: 1px solid var(--surface-border);
+            border-radius: 12px;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.75);
+            z-index: 9999;
+            background: var(--bg-canvas);
+            display: none;
+            overflow: hidden;
         }
 
-        .notification.show {
-            transform: translateX(0);
+        .copilot-fab {
+            position: fixed;
+            bottom: 20px;
+            right: 24px;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: var(--accent-purple);
+            border: 2px solid rgba(240, 246, 252, 0.2);
+            color: #ffffff;
+            font-size: 1.3rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(137, 87, 229, 0.5);
+            z-index: 10000;
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s;
+        }
+        .copilot-fab:hover {
+            transform: scale(1.08);
+            background-color: #9e6aef;
         }
 
-        .notification.error {
-            background: #f44336;
-        }
+        /* Raycast Command Palette Modal */
+        .cmd-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(1, 4, 9, 0.75); backdrop-filter: blur(4px); z-index: 20000; display: none; justify-content: center; align-items: flex-start; padding-top: 120px; }
+        .cmd-modal-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; width: 90%; max-width: 600px; box-shadow: 0 16px 36px rgba(0,0,0,0.6); overflow: hidden; }
+        .cmd-input { width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--surface-border); padding: 14px 18px; font-size: 0.95rem; color: var(--text-heading); outline: none; }
+        .cmd-list { max-height: 320px; overflow-y: auto; padding: 8px; }
+        .cmd-item { padding: 10px 14px; border-radius: 6px; font-size: 0.83rem; color: var(--text-heading); display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .cmd-item:hover, .cmd-item.selected { background: var(--accent-blue); color: #ffffff; }
 
-        @media (max-width: 768px) {
-            .dashboard {
-                grid-template-columns: 1fr;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
-            }
+        /* Modals */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(1, 4, 9, 0.8); backdrop-filter: blur(2px); z-index: 10000; display: none; justify-content: center; align-items: center; }
+        .modal-card { background: var(--surface-card); border: 1px solid var(--surface-border); border-radius: 6px; width: 90%; max-width: 580px; max-height: 85vh; overflow-y: auto; padding: 18px; }
+        .tag-pill { display: inline-flex; align-items: center; gap: 5px; background: var(--bg-canvas); border: 1px solid var(--input-border); padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; color: var(--text-body); margin: 3px; }
+        .tag-remove { cursor: pointer; color: var(--text-muted); }
+        .tag-remove:hover { color: #f85149; }
+
+        .notification { position: fixed; bottom: 20px; right: 90px; background: var(--surface-card); border-left: 4px solid #3fb950; color: var(--text-heading); padding: 10px 16px; border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,0.5); transform: translateY(150px); transition: transform 0.2s ease; z-index: 10000; font-size: 0.83rem; }
+        .notification.show { transform: translateY(0); }
+        .notification.error { border-left-color: #f85149; }
+
+        @media (max-width: 1300px) {
+            .retro-grid, .kanban-grid { grid-template-columns: repeat(2, 1fr); }
+            .docs-layout { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 1000px) {
+            .app-main { padding-right: 0; }
+            .sidebar { width: 60px; }
+            .nav-item span { display: none; }
+            .brand-title span { display: none; }
         }
     </style>
+    <!-- Mermaid.js script for live sequence & architecture diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🤖 Todo-GPT</h1>
-            <p>Your AI-powered project assistant with intelligent scheduling</p>
-        </div>
 
-        <div class="dashboard">
-            <div class="card">
-                <h2>📅 Schedule New Task</h2>
-                <form id="taskForm">
-                    <div class="form-group">
-                        <label for="title">Task Title</label>
-                        <input type="text" id="title" name="title" required placeholder="e.g., Add user authentication">
+    <!-- Floating AI Copilot Popup Drawer & Voice FAB Trigger -->
+    <iframe src="/agent.html" class="agent-iframe" id="agentCopilotDrawer" title="SprintOps Agent Drawer"></iframe>
+    <button id="copilotFab" class="copilot-fab" title="Open AI Copilot Voice & Chat">
+        🎙️
+    </button>
+
+    <!-- Gemini Antigravity Left Sidebar Navigation -->
+    <aside class="sidebar">
+        <div>
+            <div class="sidebar-header">
+                <div class="brand-title">
+                    <span class="pulse-dot" title="Server daemon running"></span>
+                    <span>SprintOps Studio</span>
+                </div>
+
+                <!-- Antigravity Active Project Box -->
+                <div class="project-box">
+                    <div class="project-name">
+                        <span>📁</span> <span id="sideProjectName">todo-gpt</span>
                     </div>
+                    <div class="project-path" id="sideProjectPath">./</div>
+                </div>
 
-                    <div class="form-group">
-                        <label for="taskType">Task Type</label>
-                        <select id="taskType" name="taskType" required>
-                            <option value="">Select type...</option>
-                            <option value="feature">New Feature</option>
-                            <option value="bugfix">Bug Fix</option>
-                            <option value="refactor">Refactoring</option>
-                            <option value="optimization">Optimization</option>
-                            <option value="documentation">Documentation</option>
-                        </select>
-                    </div>
+                <div class="ws-selector">
+                    <select id="workspaceSelect" title="Select Active Workspace">
+                        <option value="ws-default">Default Workspace</option>
+                    </select>
+                </div>
 
-                    <div class="form-group">
-                        <label for="priority">Priority</label>
-                        <select id="priority" name="priority">
-                            <option value="low">Low</option>
-                            <option value="medium" selected>Medium</option>
-                            <option value="high">High</option>
-                            <option value="urgent">Urgent</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="scheduledTime">Scheduled Time</label>
-                        <input type="datetime-local" id="scheduledTime" name="scheduledTime" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="projectPath">Project Path</label>
-                        <input type="text" id="projectPath" name="projectPath" required placeholder="/path/to/your/project">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="description">Description</label>
-                        <textarea id="description" name="description" rows="4" placeholder="Describe what needs to be done..."></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="requirements">Requirements (one per line)</label>
-                        <textarea id="requirements" name="requirements" rows="3" placeholder="- Must be responsive&#10;- Include error handling&#10;- Add unit tests"></textarea>
-                    </div>
-
-                    <button type="submit" class="btn">Schedule Task</button>
-                </form>
+                <div class="cmd-bar-btn" onclick="openCommandPalette()">
+                    <span>Search actions...</span>
+                    <span class="cmd-key">Ctrl K</span>
+                </div>
             </div>
 
-            <div class="card">
-                <h2>📊 Quick Stats</h2>
-                <div id="stats">
-                    <div style="margin-bottom: 15px;">
-                        <strong>Scheduled Tasks:</strong> <span id="scheduledCount">0</span>
-                    </div>
-                    <div style="margin-bottom: 15px;">
-                        <strong>In Progress:</strong> <span id="inProgressCount">0</span>
-                    </div>
-                    <div style="margin-bottom: 15px;">
-                        <strong>Completed:</strong> <span id="completedCount">0</span>
-                    </div>
-                    <div style="margin-bottom: 15px;">
-                        <strong>Success Rate:</strong> <span id="successRate">0%</span>
-                    </div>
-                </div>
-
-                <h3 style="margin-top: 30px; margin-bottom: 15px; color: #667eea;">System Status</h3>
-                <div id="systemStatus">
-                    <div style="margin-bottom: 10px;">
-                        <span style="color: #4caf50;">●</span> AI Agent: Online
-                    </div>
-                    <div style="margin-bottom: 10px;">
-                        <span style="color: #4caf50;">●</span> Calendar: Active
-                    </div>
-                    <div style="margin-bottom: 10px;">
-                        <span style="color: #4caf50;">●</span> Task Executor: Ready
-                    </div>
-                </div>
-
-                <h3 style="margin-top: 30px; margin-bottom: 15px; color: #667eea;">Integrations</h3>
-                <div id="integrationStatus">
-                    <div style="margin-bottom: 10px;">
-                        <span id="githubStatus" style="color: #999;">●</span> GitHub: <span id="githubStatusText">Checking...</span>
-                    </div>
-                    <div style="margin-bottom: 10px;">
-                        <span id="jiraStatus" style="color: #999;">●</span> JIRA: <span id="jiraStatusText">Checking...</span>
-                    </div>
-                    <div style="margin-bottom: 10px;">
-                        <span id="teamsStatus" style="color: #999;">●</span> Teams: <span id="teamsStatusText">Checking...</span>
-                    </div>
-                    <button id="testIntegrationsBtn" class="btn" style="margin-top: 10px; padding: 8px 16px; font-size: 14px;">
-                        Test Integrations
-                    </button>
-                </div>
+            <div class="nav-menu">
+                <button class="nav-item active" onclick="switchNav('tasks-panel', event)">
+                    <span>⚡</span> <span>Tasks & Trajectories</span>
+                </button>
+                <button class="nav-item" onclick="switchNav('docs-panel', event)">
+                    <span>📐</span> <span>Architecture & Docs</span>
+                </button>
+                <button class="nav-item" onclick="switchNav('kanban-panel', event)">
+                    <span>📊</span> <span>Agile Kanban</span>
+                </button>
+                <button class="nav-item" onclick="switchNav('retro-panel', event)">
+                    <span>📝</span> <span>Sprint Retros</span>
+                </button>
+                <button class="nav-item" onclick="switchNav('security-panel', event)">
+                    <span>🛡️</span> <span>Security Audit</span>
+                </button>
+                <button class="nav-item" onclick="switchNav('logs-panel', event)">
+                    <span>💻</span> <span>Terminal Logs</span>
+                </button>
+                <button class="nav-item" onclick="switchNav('metrics-panel', event)">
+                    <span>📈</span> <span>Sprint Velocity</span>
+                </button>
             </div>
         </div>
 
-        <div class="calendar-view">
-            <h2>📋 Scheduled Tasks</h2>
-            <div id="eventsList" class="events-list">
-                <div class="loading">Loading tasks...</div>
+        <div class="sidebar-footer">
+            <div style="font-family: var(--font-code); font-size: 0.72rem; color: var(--accent-blue);" id="currentHostBadge">Host: http://localhost:3000</div>
+            <div style="display: flex; gap: 6px; margin-top: 4px;">
+                <button id="openInviteBtn" class="btn btn-sm" style="flex: 1;">Members (<span id="memberCount">1</span>)</button>
+                <button id="openNewWorkspaceBtn" class="btn btn-sm">+</button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Workspace Viewport -->
+    <main class="app-main">
+        <!-- Top Navigation Bar -->
+        <header class="top-bar">
+            <div class="breadcrumb">
+                <span>SprintOps</span>
+                <span>/</span>
+                <span id="activeWorkspaceNameBreadcrumb">Workspace</span>
+                <span>/</span>
+                <span class="breadcrumb-active" id="activeSectionBreadcrumb">Tasks & Trajectories</span>
+            </div>
+
+            <div class="top-right">
+                <span class="model-pill">Gemini 1.5 Flash • Connected</span>
+                <button id="testIntegrationsBtn" class="btn btn-sm">Test Integrations</button>
+                <button id="openSettingsBtn" class="btn btn-primary btn-sm">Settings</button>
+            </div>
+        </header>
+
+        <!-- Viewport Panels Container -->
+        <div class="viewport">
+
+            <!-- Panel 1: Antigravity Tasks & Trajectories -->
+            <div id="tasks-panel" class="view-panel active">
+                <div style="display: grid; grid-template-columns: 380px 1fr; gap: 20px;">
+                    <!-- Schedule Form -->
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Schedule Execution</span>
+                        </div>
+
+                        <div class="voice-section">
+                            <div style="font-size: 0.78rem; color: var(--text-muted);" id="voice-status">Voice Dictation Ready</div>
+                            <div class="waveform" id="waveform" title="Click to dictate voice command">
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                            </div>
+                        </div>
+
+                        <form id="taskForm">
+                            <div class="form-group">
+                                <label for="title">Task Title</label>
+                                <input type="text" id="title" name="title" required placeholder="Add feature or fix bug...">
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="taskType">Type</label>
+                                    <select id="taskType" name="taskType" required>
+                                        <option value="feature">New Feature</option>
+                                        <option value="bugfix">Bug Fix</option>
+                                        <option value="refactor">Refactoring</option>
+                                        <option value="optimization">Optimization</option>
+                                        <option value="documentation">Documentation</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="priority">Priority</label>
+                                    <select id="priority" name="priority">
+                                        <option value="low">Low</option>
+                                        <option value="medium" selected>Medium</option>
+                                        <option value="high">High</option>
+                                        <option value="urgent">Urgent</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="scheduledTime">Scheduled Execution</label>
+                                <input type="datetime-local" id="scheduledTime" name="scheduledTime" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="projectPath">Project Path</label>
+                                <div style="display: flex; gap: 8px;">
+                                    <input type="text" id="projectPath" name="projectPath" required value="./" placeholder="./">
+                                    <button type="button" class="btn btn-sm" onclick="browseDirectory('projectPath')">Browse...</button>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="description">Task Prompt</label>
+                                <textarea id="description" name="description" rows="3" placeholder="Explain technical requirements..."></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="requirements">Checklist (One per line)</label>
+                                <textarea id="requirements" name="requirements" rows="2" placeholder="- Unit test coverage&#10;- Backward compatibility"></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 9px;">
+                                Schedule Task
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Scheduled Tasks Trajectories Queue -->
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Scheduled Task Trajectories</span>
+                        </div>
+                        <div id="eventsList" class="events-list">
+                            <div style="color: var(--text-muted); text-align: center; padding: 30px;">Loading tasks...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 2: Architecture & Confluence Docs with Mermaid -->
+            <div id="docs-panel" class="view-panel">
+                <div class="card">
+                    <div class="docs-layout">
+                        <div class="docs-sidebar">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <span style="font-size: 0.8rem; font-weight: 600;">Architecture Specs</span>
+                                <button class="btn btn-primary btn-sm" onclick="createNewDoc()">+ New Doc</button>
+                            </div>
+                            <div id="docsList" style="display: flex; flex-direction: column; gap: 6px; overflow-y: auto;"></div>
+                        </div>
+
+                        <div class="docs-main">
+                            <div style="display: flex; gap: 10px; align-items: center; justify-content: space-between;">
+                                <input type="text" id="activeDocTitle" style="background: var(--bg-canvas); border: 1px solid var(--input-border); color: var(--text-heading); font-size: 0.9rem; font-weight: 600; padding: 6px 10px; border-radius: 6px; width: 50%;" placeholder="Document Title">
+                                
+                                <div style="display: flex; gap: 6px;">
+                                    <button class="btn btn-purple btn-sm" onclick="promptGenerateMermaid()">
+                                        AI Mermaid Generator
+                                    </button>
+                                    <button class="btn btn-primary btn-sm" onclick="saveActiveDoc()">
+                                        Save Document
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mermaid-preview" id="mermaidRenderContainer">
+                                <div style="color: var(--text-muted); font-size: 0.8rem;">Select a Mermaid sequence diagram spec to preview live architecture.</div>
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 0.75rem; color: var(--text-muted);">Markdown / Mermaid Code Editor</label>
+                                <textarea id="docContentEditor" rows="8" style="font-family: var(--font-code); font-size: 0.8rem;" placeholder="Enter Markdown or Mermaid syntax..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 3: Agile Kanban Board -->
+            <div id="kanban-panel" class="view-panel">
+                <div class="kanban-grid">
+                    <div class="kanban-col">
+                        <div class="kanban-col-header kb-backlog">
+                            <span>Backlog</span>
+                            <span class="kb-count" id="count-backlog">0</span>
+                        </div>
+                        <div class="kanban-cards-list" id="kb-col-backlog"></div>
+                    </div>
+                    <div class="kanban-col">
+                        <div class="kanban-col-header kb-progress">
+                            <span>In Progress</span>
+                            <span class="kb-count" id="count-in_progress">0</span>
+                        </div>
+                        <div class="kanban-cards-list" id="kb-col-in_progress"></div>
+                    </div>
+                    <div class="kanban-col">
+                        <div class="kanban-col-header kb-review">
+                            <span>AI Review</span>
+                            <span class="kb-count" id="count-in_review">0</span>
+                        </div>
+                        <div class="kanban-cards-list" id="kb-col-in_review"></div>
+                    </div>
+                    <div class="kanban-col">
+                        <div class="kanban-col-header kb-done">
+                            <span>Done</span>
+                            <span class="kb-count" id="count-done">0</span>
+                        </div>
+                        <div class="kanban-cards-list" id="kb-col-done"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 4: Miro Sprint Retros -->
+            <div id="retro-panel" class="view-panel">
+                <div class="card">
+                    <div class="retro-header-bar">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 0.82rem; font-weight: 600; color: var(--text-heading);">Retro Board:</span>
+                            <select id="retroBoardSelect" style="background: var(--bg-canvas); color: var(--text-heading); border: 1px solid var(--input-border); border-radius: 6px; padding: 4px 8px; font-size: 0.8rem;">
+                                <option value="retro-default-1">Sprint 1 - Initial Release</option>
+                            </select>
+                            <button id="openNewRetroModalBtn" class="btn btn-sm">New Retro</button>
+                        </div>
+
+                        <button id="triggerAIRetroBtn" class="btn btn-purple btn-sm">
+                            AI Retro Insights
+                        </button>
+                    </div>
+
+                    <div class="ai-banner" id="aiSummaryBanner">
+                        <strong>AI Retro Insights:</strong> Sprint 1 achieved 100% execution success rate.
+                    </div>
+
+                    <div class="retro-grid">
+                        <div class="retro-col">
+                            <div class="retro-col-header col-went-well">
+                                <span>What Went Well</span>
+                                <button class="btn btn-sm" onclick="promptAddCard('wentWell')">+ Note</button>
+                            </div>
+                            <div class="retro-cards-list" id="col-wentWell"></div>
+                        </div>
+                        <div class="retro-col">
+                            <div class="retro-col-header col-did-not-go">
+                                <span>Needs Improvement</span>
+                                <button class="btn btn-sm" onclick="promptAddCard('didNotGoWell')">+ Note</button>
+                            </div>
+                            <div class="retro-cards-list" id="col-didNotGoWell"></div>
+                        </div>
+                        <div class="retro-col">
+                            <div class="retro-col-header col-action-items">
+                                <span>Action Items</span>
+                                <button class="btn btn-sm" onclick="promptAddCard('actionItems')">+ Note</button>
+                            </div>
+                            <div class="retro-cards-list" id="col-actionItems"></div>
+                        </div>
+                        <div class="retro-col">
+                            <div class="retro-col-header col-ideas">
+                                <span>Ideas & Experiments</span>
+                                <button class="btn btn-sm" onclick="promptAddCard('ideas')">+ Note</button>
+                            </div>
+                            <div class="retro-cards-list" id="col-ideas"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 5: Security Audit -->
+            <div id="security-panel" class="view-panel">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-canvas); border: 1px solid var(--surface-border); border-radius: 6px; padding: 18px;">
+                        <div>
+                            <h3 style="color: var(--text-heading); font-size: 1rem; margin-bottom: 4px;">Code Security & Vulnerability Audit</h3>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);" id="secScanMeta">Click "Run Security Audit" to scan codebase for AST vulnerabilities and secret leaks.</div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 20px;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 2rem; font-weight: 800; color: #3fb950;" id="secScoreBadge">100</div>
+                                <div style="font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase;">Security Score</div>
+                            </div>
+                            <button class="btn btn-primary" id="runSecurityScanBtn">Run Security Audit</button>
+                        </div>
+                    </div>
+
+                    <div id="vulnerabilitiesContainer" style="display: flex; flex-direction: column; gap: 10px; margin-top: 16px;">
+                        <div style="color: var(--text-muted); font-size: 0.82rem; text-align: center; padding: 30px;">No vulnerabilities detected. Workspace codebase is secure.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 6: Terminal Output -->
+            <div id="logs-panel" class="view-panel">
+                <div class="card" style="padding: 0;">
+                    <div id="executionLogs" class="terminal-box">
+                        <div class="log-entry"><span class="log-time">[SYSTEM]</span> Connected to SprintOps execution daemon...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 7: Sprint Analytics -->
+            <div id="metrics-panel" class="view-panel">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Daily Velocity</div>
+                        <div class="stat-value" id="dailyVelocityVal">5.0 pts</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Completed Story Pts</div>
+                        <div class="stat-value" id="completedPtsVal">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Est. Completion Days</div>
+                        <div class="stat-value" id="estDaysVal">0 Days</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Target Finish Date</div>
+                        <div class="stat-value" id="targetDateVal" style="font-size: 0.95rem;">-</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h4 style="color: var(--text-heading); margin-bottom: 8px; font-size: 0.88rem;">System Integrations Status</h4>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.8;">
+                        <div>GitHub Repo: <span id="githubStatusText" style="color: var(--text-heading);">Checking...</span></div>
+                        <div>JIRA Project: <span id="jiraStatusText" style="color: var(--text-heading);">Checking...</span></div>
+                        <div>Teams Webhook: <span id="teamsStatusText" style="color: var(--text-heading);">Checking...</span></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Raycast Command Palette Modal (Ctrl + K) -->
+    <div id="cmdPaletteModal" class="cmd-modal-overlay">
+        <div class="cmd-modal-card">
+            <input type="text" class="cmd-input" id="cmdInput" placeholder="Type a command or search actions... (Esc to cancel)">
+            <div class="cmd-list" id="cmdList">
+                <div class="cmd-item" onclick="triggerCmd('tasks')"><span>⚡ Go to Tasks & Trajectories</span><span class="cmd-key">Jump</span></div>
+                <div class="cmd-item" onclick="triggerCmd('docs')"><span>📐 Go to Architecture & Docs (Mermaid)</span><span class="cmd-key">Jump</span></div>
+                <div class="cmd-item" onclick="triggerCmd('kanban')"><span>📊 Go to Agile Kanban Board</span><span class="cmd-key">Jump</span></div>
+                <div class="cmd-item" onclick="triggerCmd('retro')"><span>📝 Go to Sprint Retros</span><span class="cmd-key">Jump</span></div>
+                <div class="cmd-item" onclick="triggerCmd('security')"><span>🛡️ Run Security Audit</span><span class="cmd-key">Action</span></div>
+                <div class="cmd-item" onclick="triggerCmd('mermaid')"><span>✨ Generate AI Mermaid Sequence Diagram</span><span class="cmd-key">AI</span></div>
             </div>
         </div>
     </div>
 
+    <!-- Retro Modal -->
+    <div id="retroModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="card-header">
+                <span class="card-title">Create New Sprint Retro Board</span>
+                <span id="closeRetroModalBtn" style="cursor: pointer; color: var(--text-muted);">&times;</span>
+            </div>
+            <form id="retroForm">
+                <div class="form-group">
+                    <label>Sprint Name / Sprint Title</label>
+                    <input type="text" id="retroSprintName" required placeholder="e.g. Sprint 15 - Security Hardening">
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 14px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1; justify-content: center;">Create Retro Board</button>
+                    <button type="button" id="cancelRetroModalBtn" class="btn" style="flex: 1; justify-content: center;">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Workspace Modal -->
+    <div id="workspaceModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="card-header">
+                <span class="card-title">Create New Workspace</span>
+                <span id="closeWorkspaceModalBtn" style="cursor: pointer; color: var(--text-muted);">&times;</span>
+            </div>
+            <form id="workspaceForm">
+                <div class="form-group">
+                    <label>Workspace Name</label>
+                    <input type="text" id="wsName" required placeholder="e.g. Backend Microservices">
+                </div>
+                <div class="form-group">
+                    <label>Host Endpoint URL</label>
+                    <input type="text" id="wsHost" required value="http://localhost:3000">
+                </div>
+                <div class="form-group">
+                    <label>Root Project Path</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="wsProjectPath" required value="./">
+                        <button type="button" class="btn btn-sm" onclick="browseDirectory('wsProjectPath')">Browse...</button>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 14px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1; justify-content: center;">Create Workspace</button>
+                    <button type="button" id="cancelWorkspaceModalBtn" class="btn" style="flex: 1; justify-content: center;">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Invite Members Modal -->
+    <div id="inviteModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="card-header">
+                <span class="card-title">Invite Workspace Collaborators</span>
+                <span id="closeInviteModalBtn" style="cursor: pointer; color: var(--text-muted);">&times;</span>
+            </div>
+            <form id="inviteForm">
+                <div class="form-group">
+                    <label>Collaborator Email</label>
+                    <input type="email" id="inviteEmail" required placeholder="colleague@company.com">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-bottom: 14px;">
+                    Add Collaborator
+                </button>
+            </form>
+
+            <div>
+                <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-heading); display: block; margin-bottom: 6px;">Active Members:</label>
+                <div id="collaboratorsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="card-header">
+                <span class="card-title">System Settings</span>
+                <span id="closeSettingsBtn" style="cursor: pointer; color: var(--text-muted);">&times;</span>
+            </div>
+
+            <form id="settingsForm">
+                <h4 style="color: var(--accent-blue); font-size: 0.8rem; margin: 10px 0;">AI Model Configuration</h4>
+                <div class="form-group">
+                    <label>OpenAI API Key</label>
+                    <input type="password" name="OPENAI_API_KEY" placeholder="sk-...">
+                </div>
+                <div class="form-group">
+                    <label>Gemini API Key</label>
+                    <input type="password" name="GEMINI_API_KEY" placeholder="AIzaSy...">
+                </div>
+                <div class="form-group">
+                    <label>Anthropic API Key</label>
+                    <input type="password" name="ANTHROPIC_API_KEY" placeholder="sk-ant-...">
+                </div>
+                <div class="form-group">
+                    <label>Default Model</label>
+                    <select name="AI_MODEL">
+                        <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                        <option value="gpt-4">GPT-4</option>
+                        <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                        <option value="claude-3-opus">Claude 3 Opus</option>
+                        <option value="claude-3-sonnet">Claude 3 Sonnet</option>
+                        <option value="local-llama">Local LLaMA 3 (Docker)</option>
+                    </select>
+                </div>
+
+                <h4 style="color: var(--accent-blue); font-size: 0.8rem; margin: 18px 0 8px;">Custom Docker LLM</h4>
+                <div class="form-group">
+                    <label>Base URL</label>
+                    <input type="text" name="customLLM_baseUrl" placeholder="http://localhost:11434/v1">
+                </div>
+                <div class="form-group">
+                    <label>Model Name</label>
+                    <input type="text" name="customLLM_modelName" placeholder="llama3">
+                </div>
+
+                <h4 style="color: var(--accent-blue); font-size: 0.8rem; margin: 18px 0 8px;">Integrations</h4>
+                <div class="form-group">
+                    <label>GitHub Access Token</label>
+                    <input type="password" name="GITHUB_TOKEN" placeholder="ghp_...">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>JIRA Base URL</label>
+                        <input type="text" name="JIRA_BASE_URL" placeholder="https://domain.atlassian.net">
+                    </div>
+                    <div class="form-group">
+                        <label>JIRA Project Key</label>
+                        <input type="text" name="JIRA_PROJECT_KEY" placeholder="KAN">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>JIRA Email</label>
+                    <input type="email" name="JIRA_EMAIL" placeholder="email@company.com">
+                </div>
+                <div class="form-group">
+                    <label>JIRA API Token</label>
+                    <input type="password" name="JIRA_API_TOKEN" placeholder="Atlassian Token">
+                </div>
+                <div class="form-group">
+                    <label>Teams Webhook URL</label>
+                    <input type="password" name="TEAMS_WEBHOOK_URL" placeholder="https://outlook.office.com/webhook/...">
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 16px; border-top: 1px solid var(--surface-border); padding-top: 12px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1; justify-content: center;">Save Settings</button>
+                    <button type="button" id="cancelSettingsBtn" class="btn" style="flex: 1; justify-content: center;">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
     <div id="notification" class="notification"></div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        // Initialize Socket.IO
         const socket = io();
 
-        // DOM elements
+        // Elements
         const taskForm = document.getElementById('taskForm');
         const eventsList = document.getElementById('eventsList');
         const notification = document.getElementById('notification');
+        const executionLogs = document.getElementById('executionLogs');
+        const workspaceSelect = document.getElementById('workspaceSelect');
+        const currentHostBadge = document.getElementById('currentHostBadge');
+        const memberCount = document.getElementById('memberCount');
+        const retroBoardSelect = document.getElementById('retroBoardSelect');
+        const aiSummaryBanner = document.getElementById('aiSummaryBanner');
 
-        // Initialize the app
+        let currentActiveWorkspace = null;
+        let currentRetroId = null;
+        let activeDocId = null;
+        let workspaceDocs = [];
+
+        // Floating AI Copilot Popup Toggle
+        const copilotFab = document.getElementById('copilotFab');
+        const agentCopilotDrawer = document.getElementById('agentCopilotDrawer');
+
+        copilotFab.addEventListener('click', () => {
+            if (agentCopilotDrawer.style.display === 'block') {
+                agentCopilotDrawer.style.display = 'none';
+            } else {
+                agentCopilotDrawer.style.display = 'block';
+            }
+        });
+
+        // Directory Picker
+        async function browseDirectory(targetId) {
+            try {
+                if (window.require) {
+                    const { ipcRenderer } = window.require('electron');
+                    if (ipcRenderer) {
+                        const selectedDir = await ipcRenderer.invoke('select-directory');
+                        if (selectedDir) {
+                            document.getElementById(targetId).value = selectedDir;
+                            return;
+                        }
+                    }
+                }
+                const currentVal = document.getElementById(targetId).value;
+                const promptVal = prompt('Enter target directory path:', currentVal);
+                if (promptVal && promptVal.trim()) {
+                    document.getElementById(targetId).value = promptVal.trim();
+                }
+            } catch (err) {
+                console.error('Directory picker error:', err);
+            }
+        }
+        window.browseDirectory = browseDirectory;
+
+        // Navigation Sidebar Switcher
+        function switchNav(panelId, evt) {
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            document.querySelectorAll('.view-panel').forEach(panel => panel.classList.remove('active'));
+
+            if (evt && evt.currentTarget) {
+                evt.currentTarget.classList.add('active');
+                const titleText = evt.currentTarget.querySelector('span:last-child').textContent;
+                document.getElementById('activeSectionBreadcrumb').textContent = titleText;
+            }
+
+            document.getElementById(panelId).classList.add('active');
+
+            if (panelId === 'docs-panel') loadDocs();
+            if (panelId === 'kanban-panel') loadKanbanBoard();
+            if (panelId === 'retro-panel') loadRetros();
+            if (panelId === 'security-panel') runSecurityScan();
+            if (panelId === 'metrics-panel') loadVelocityPredictor();
+        }
+        window.switchNav = switchNav;
+
+        // Command Palette Modal (Ctrl + K)
+        const cmdPaletteModal = document.getElementById('cmdPaletteModal');
+        const cmdInput = document.getElementById('cmdInput');
+
+        function openCommandPalette() {
+            cmdPaletteModal.style.display = 'flex';
+            cmdInput.value = '';
+            cmdInput.focus();
+        }
+
+        function closeCommandPalette() {
+            cmdPaletteModal.style.display = 'none';
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+                e.preventDefault();
+                openCommandPalette();
+            }
+            if (e.key === 'Escape') {
+                closeCommandPalette();
+            }
+        });
+
+        function triggerCmd(action) {
+            closeCommandPalette();
+            if (action === 'tasks') switchNav('tasks-panel');
+            if (action === 'docs') switchNav('docs-panel');
+            if (action === 'kanban') switchNav('kanban-panel');
+            if (action === 'retro') switchNav('retro-panel');
+            if (action === 'security') { switchNav('security-panel'); runSecurityScan(); }
+            if (action === 'mermaid') { switchNav('docs-panel'); promptGenerateMermaid(); }
+        }
+        window.triggerCmd = triggerCmd;
+
+        // Init App
         document.addEventListener('DOMContentLoaded', function() {
+            if (window.mermaid) {
+                mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+            }
+            loadWorkspaces();
             loadEvents();
             updateStats();
             loadIntegrationStatus();
             
-            // Set default scheduled time to 1 hour from now
             const now = new Date();
             now.setHours(now.getHours() + 1);
             document.getElementById('scheduledTime').value = now.toISOString().slice(0, 16);
 
-            // Add event listener for test integrations button
             document.getElementById('testIntegrationsBtn').addEventListener('click', testIntegrations);
+            document.getElementById('runSecurityScanBtn').addEventListener('click', runSecurityScan);
+            document.getElementById('docContentEditor').addEventListener('input', renderMermaidPreview);
         });
 
-        // Handle form submission
+        // Workspaces & Project Tree
+        async function loadWorkspaces() {
+            try {
+                const res = await fetch('/api/workspaces');
+                const data = await res.json();
+                
+                workspaceSelect.innerHTML = data.workspaces.map(ws => `
+                    <option value="${ws.id}" ${ws.id === data.activeWorkspaceId ? 'selected' : ''}>
+                        ${ws.name}
+                    </option>
+                `).join('');
+
+                const active = data.workspaces.find(w => w.id === data.activeWorkspaceId) || data.workspaces[0];
+                if (active) {
+                    currentActiveWorkspace = active;
+                    currentHostBadge.textContent = `Host: ${active.host}`;
+                    document.getElementById('activeWorkspaceNameBreadcrumb').textContent = active.name;
+                    document.getElementById('sideProjectName').textContent = active.name;
+                    document.getElementById('sideProjectPath').textContent = active.projectPath || './';
+                    document.getElementById('projectPath').value = active.projectPath || './';
+                    memberCount.textContent = (active.collaborators || []).length;
+                    renderCollaborators(active.collaborators || []);
+                }
+            } catch (err) {
+                console.error('Failed to load workspaces:', err);
+            }
+        }
+
+        workspaceSelect.addEventListener('change', async (e) => {
+            const selectedId = e.target.value;
+            try {
+                await fetch('/api/workspaces/select', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: selectedId })
+                });
+                await loadWorkspaces();
+                await loadEvents();
+                await updateStats();
+                await loadRetros();
+                await loadDocs();
+                showNotification('Switched active workspace', 'success');
+            } catch (err) {
+                showNotification('Failed to switch workspace: ' + err.message, 'error');
+            }
+        });
+
+        // Modals
+        const workspaceModal = document.getElementById('workspaceModal');
+        document.getElementById('openNewWorkspaceBtn').addEventListener('click', () => workspaceModal.style.display = 'flex');
+        document.getElementById('closeWorkspaceModalBtn').addEventListener('click', () => workspaceModal.style.display = 'none');
+        document.getElementById('cancelWorkspaceModalBtn').addEventListener('click', () => workspaceModal.style.display = 'none');
+
+        document.getElementById('workspaceForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const wsData = {
+                name: document.getElementById('wsName').value,
+                host: document.getElementById('wsHost').value,
+                projectPath: document.getElementById('wsProjectPath').value
+            };
+
+            try {
+                const res = await fetch('/api/workspaces', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(wsData)
+                });
+                if (res.ok) {
+                    showNotification('Workspace created!', 'success');
+                    workspaceModal.style.display = 'none';
+                    document.getElementById('workspaceForm').reset();
+                    await loadWorkspaces();
+                    await loadEvents();
+                }
+            } catch (err) {
+                showNotification('Error creating workspace: ' + err.message, 'error');
+            }
+        });
+
+        // Invite Modal
+        const inviteModal = document.getElementById('inviteModal');
+        document.getElementById('openInviteBtn').addEventListener('click', () => inviteModal.style.display = 'flex');
+        document.getElementById('closeInviteModalBtn').addEventListener('click', () => inviteModal.style.display = 'none');
+
+        document.getElementById('inviteForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('inviteEmail').value;
+            if (!currentActiveWorkspace) return;
+
+            try {
+                const res = await fetch(`/api/workspaces/${currentActiveWorkspace.id}/invite`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                if (res.ok) {
+                    showNotification(`Collaborator ${email} added!`, 'success');
+                    document.getElementById('inviteEmail').value = '';
+                    await loadWorkspaces();
+                }
+            } catch (err) {
+                showNotification('Failed to invite member: ' + err.message, 'error');
+            }
+        });
+
+        function renderCollaborators(list) {
+            const container = document.getElementById('collaboratorsList');
+            if (!list || list.length === 0) {
+                container.innerHTML = '<div style="font-size: 0.78rem; color: var(--text-muted);">No collaborators invited yet.</div>';
+                return;
+            }
+
+            container.innerHTML = list.map(email => `
+                <span class="tag-pill">
+                    ${email}
+                    <span class="tag-remove" onclick="removeMember('${email}')">&times;</span>
+                </span>
+            `).join('');
+        }
+
+        async function removeMember(email) {
+            if (!currentActiveWorkspace) return;
+            try {
+                const res = await fetch(`/api/workspaces/${currentActiveWorkspace.id}/invite`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                if (res.ok) {
+                    showNotification(`Removed ${email}`, 'success');
+                    await loadWorkspaces();
+                }
+            } catch (err) {
+                showNotification('Error removing member: ' + err.message, 'error');
+            }
+        }
+        window.removeMember = removeMember;
+
+        // ARCHITECTURE & DOCS (MERMAID) LOGIC
+        async function loadDocs() {
+            try {
+                const res = await fetch('/api/docs');
+                workspaceDocs = await res.json();
+                
+                const listContainer = document.getElementById('docsList');
+                if (workspaceDocs.length === 0) {
+                    listContainer.innerHTML = '<div style="font-size: 0.75rem; color: var(--text-muted);">No docs saved</div>';
+                    return;
+                }
+
+                listContainer.innerHTML = workspaceDocs.map(d => `
+                    <button class="doc-item-btn ${d.id === activeDocId ? 'active' : ''}" onclick="selectDoc('${d.id}')">
+                        <div>${d.title}</div>
+                        <div style="font-size: 0.68rem; color: var(--text-muted); margin-top: 2px;">Type: ${d.type.toUpperCase()}</div>
+                    </button>
+                `).join('');
+
+                if (!activeDocId || !workspaceDocs.some(d => d.id === activeDocId)) {
+                    selectDoc(workspaceDocs[0].id);
+                }
+            } catch (err) {
+                console.error('Failed to load docs:', err);
+            }
+        }
+
+        function selectDoc(docId) {
+            activeDocId = docId;
+            const doc = workspaceDocs.find(d => d.id === docId);
+            if (!doc) return;
+
+            document.getElementById('activeDocTitle').value = doc.title;
+            document.getElementById('docContentEditor').value = doc.content;
+
+            renderMermaidPreview();
+            loadDocs();
+        }
+        window.selectDoc = selectDoc;
+
+        function renderMermaidPreview() {
+            const content = document.getElementById('docContentEditor').value;
+            const container = document.getElementById('mermaidRenderContainer');
+
+            if (content.includes('sequenceDiagram') || content.includes('graph') || content.includes('flowchart') || content.includes('classDiagram')) {
+                const cleanSyntax = content.replace(/```mermaid/g, '').replace(/```/g, '').trim();
+                const renderId = 'mermaid-' + Date.now();
+                container.innerHTML = `<div class="mermaid" id="${renderId}">${cleanSyntax}</div>`;
+                if (window.mermaid) {
+                    try {
+                        mermaid.init(undefined, `#${renderId}`);
+                    } catch (err) {
+                        container.innerHTML = `<div style="color: #f85149; font-size: 0.8rem;">Mermaid Syntax Error: ${err.message}</div>`;
+                    }
+                }
+            } else {
+                container.innerHTML = `<div style="font-size: 0.83rem; color: var(--text-heading); white-space: pre-wrap; width: 100%; text-align: left;">${content}</div>`;
+            }
+        }
+
+        async function createNewDoc() {
+            const title = prompt('Enter document or diagram title:', 'New Architecture Spec');
+            if (!title) return;
+
+            try {
+                const res = await fetch('/api/docs', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title,
+                        type: 'mermaid',
+                        content: `sequenceDiagram\n    actor Dev\n    participant App\n    Dev->>App: Trigger Action\n    App-->>Dev: Success Response`
+                    })
+                });
+                if (res.ok) {
+                    const newDoc = await res.json();
+                    activeDocId = newDoc.id;
+                    await loadDocs();
+                    showNotification('Created new architecture doc!', 'success');
+                }
+            } catch (err) {
+                showNotification('Error creating doc: ' + err.message, 'error');
+            }
+        }
+        window.createNewDoc = createNewDoc;
+
+        async function saveActiveDoc() {
+            if (!activeDocId) return;
+            const title = document.getElementById('activeDocTitle').value;
+            const content = document.getElementById('docContentEditor').value;
+
+            try {
+                const res = await fetch('/api/docs', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: activeDocId, title, content })
+                });
+                if (res.ok) {
+                    showNotification('Document saved!', 'success');
+                    await loadDocs();
+                }
+            } catch (err) {
+                showNotification('Error saving doc: ' + err.message, 'error');
+            }
+        }
+        window.saveActiveDoc = saveActiveDoc;
+
+        async function promptGenerateMermaid() {
+            const promptText = prompt('Describe sequence or architecture diagram to generate (e.g. "User login with OAuth and JWT token"):');
+            if (!promptText) return;
+
+            try {
+                showNotification('Generating Mermaid sequence diagram...', 'success');
+                const res = await fetch('/api/docs/generate-mermaid', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: promptText, diagramType: 'sequence' })
+                });
+                if (res.ok) {
+                    const newDoc = await res.json();
+                    activeDocId = newDoc.id;
+                    await loadDocs();
+                    showNotification('Mermaid diagram generated!', 'success');
+                }
+            } catch (err) {
+                showNotification('Error generating diagram: ' + err.message, 'error');
+            }
+        }
+        window.promptGenerateMermaid = promptGenerateMermaid;
+
+        // AGILE KANBAN BOARD LOGIC
+        async function loadKanbanBoard() {
+            try {
+                const res = await fetch('/api/kanban');
+                const board = await res.json();
+
+                renderKanbanColumn('backlog', board.backlog || []);
+                renderKanbanColumn('in_progress', board.in_progress || []);
+                renderKanbanColumn('in_review', board.in_review || []);
+                renderKanbanColumn('done', board.done || []);
+            } catch (err) {
+                console.error('Failed to load Kanban board:', err);
+            }
+        }
+
+        function renderKanbanColumn(colKey, tasks) {
+            const container = document.getElementById(`kb-col-${colKey}`);
+            document.getElementById(`count-${colKey}`).textContent = tasks ? tasks.length : 0;
+            
+            if (!tasks || tasks.length === 0) {
+                container.innerHTML = '<div style="font-size: 0.75rem; color: var(--text-muted); padding: 10px;">Empty</div>';
+                return;
+            }
+
+            container.innerHTML = tasks.map(t => `
+                <div class="kanban-card">
+                    <div style="font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">${t.title}</div>
+                    <div style="display: flex; gap: 4px; margin-bottom: 8px;">
+                        <span class="status-badge status-${t.status}">${t.priority || 'medium'}</span>
+                        <span style="font-size: 0.68rem; color: var(--text-muted);">${t.taskType || 'feature'}</span>
+                    </div>
+                    <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                        ${colKey !== 'in_progress' ? `<button class="btn btn-sm" onclick="moveKanbanTask('${t.id}', 'in_progress')">→ Progress</button>` : ''}
+                        ${colKey !== 'in_review' ? `<button class="btn btn-sm" onclick="moveKanbanTask('${t.id}', 'in_review')">→ Review</button>` : ''}
+                        ${colKey !== 'done' ? `<button class="btn btn-primary btn-sm" onclick="moveKanbanTask('${t.id}', 'done')">✓ Done</button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function moveKanbanTask(taskId, targetColumn) {
+            try {
+                const res = await fetch('/api/kanban/move', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ taskId, targetColumn })
+                });
+                if (res.ok) {
+                    await loadKanbanBoard();
+                    await loadEvents();
+                    await updateStats();
+                }
+            } catch (err) {
+                showNotification('Error moving task: ' + err.message, 'error');
+            }
+        }
+        window.moveKanbanTask = moveKanbanTask;
+
+        // AI SECURITY AUDIT SCANNER LOGIC
+        async function runSecurityScan() {
+            const btn = document.getElementById('runSecurityScanBtn');
+            btn.textContent = 'Scanning...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/security/scan', { method: 'POST' });
+                const data = await res.json();
+
+                document.getElementById('secScoreBadge').textContent = data.securityScore;
+                document.getElementById('secScoreBadge').style.color = data.securityScore > 80 ? '#3fb950' : data.securityScore > 50 ? '#d29922' : '#f85149';
+                document.getElementById('secScanMeta').textContent = `Scanned ${data.scannedFilesCount} files in workspace. ${data.vulnerabilities.length} security alerts found.`;
+
+                const container = document.getElementById('vulnerabilitiesContainer');
+                if (data.vulnerabilities.length === 0) {
+                    container.innerHTML = '<div style="color: #3fb950; font-size: 0.83rem; text-align: center; padding: 20px; background: var(--bg-canvas); border: 1px solid var(--surface-border); border-radius: 6px;">✓ Security Audit Passed: Codebase is free from hardcoded secrets and SQL injections.</div>';
+                } else {
+                    container.innerHTML = data.vulnerabilities.map(v => `
+                        <div style="background: var(--bg-canvas); border-left: 4px solid ${v.severity === 'CRITICAL' ? '#f85149' : '#d29922'}; border-radius: 4px; padding: 10px; font-size: 0.8rem;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <strong>${v.vulnerability}</strong>
+                                <span class="status-badge ${v.severity === 'CRITICAL' ? 'status-failed' : 'status-in_progress'}">${v.severity}</span>
+                            </div>
+                            <div style="color: var(--text-muted); margin-top: 4px;">File: ${v.file} (${v.matchCount} occurrences)</div>
+                            <div style="color: var(--text-heading); margin-top: 4px;">Recommendation: ${v.recommendation}</div>
+                        </div>
+                    `).join('');
+                }
+                showNotification('Security audit complete!', 'success');
+            } catch (err) {
+                showNotification('Security audit failed: ' + err.message, 'error');
+            } finally {
+                btn.textContent = 'Run Security Audit';
+                btn.disabled = false;
+            }
+        }
+
+        // VELOCITY PREDICTOR METRICS
+        async function loadVelocityPredictor() {
+            try {
+                const res = await fetch('/api/analytics/velocity');
+                const v = await res.json();
+
+                document.getElementById('dailyVelocityVal').textContent = `${v.dailyVelocity} pts/day`;
+                document.getElementById('completedPtsVal').textContent = `${v.completedStoryPoints} pts`;
+                document.getElementById('estDaysVal').textContent = `${v.predictedDaysToFinish} Days`;
+                document.getElementById('targetDateVal').textContent = v.targetCompletionDate;
+            } catch (err) {
+                console.error('Failed to load velocity analytics:', err);
+            }
+        }
+
+        // MIRO SPRINT RETROS LOGIC
+        async function loadRetros() {
+            try {
+                const res = await fetch('/api/retros');
+                const retros = await res.json();
+                
+                if (retros.length === 0) {
+                    currentRetroId = null;
+                    retroBoardSelect.innerHTML = '<option value="">No Retro Boards</option>';
+                    renderRetroBoard(null);
+                    return;
+                }
+
+                retroBoardSelect.innerHTML = retros.map(r => `
+                    <option value="${r.id}" ${currentRetroId === r.id ? 'selected' : ''}>
+                        ${r.sprintName}
+                    </option>
+                `).join('');
+
+                if (!currentRetroId || !retros.some(r => r.id === currentRetroId)) {
+                    currentRetroId = retros[0].id;
+                }
+
+                const activeRetro = retros.find(r => r.id === currentRetroId) || retros[0];
+                renderRetroBoard(activeRetro);
+            } catch (err) {
+                console.error('Failed to load retros:', err);
+            }
+        }
+
+        retroBoardSelect.addEventListener('change', (e) => {
+            currentRetroId = e.target.value;
+            loadRetros();
+        });
+
+        // New Retro Modal
+        const retroModal = document.getElementById('retroModal');
+        document.getElementById('openNewRetroModalBtn').addEventListener('click', () => retroModal.style.display = 'flex');
+        document.getElementById('closeRetroModalBtn').addEventListener('click', () => retroModal.style.display = 'none');
+        document.getElementById('cancelRetroModalBtn').addEventListener('click', () => retroModal.style.display = 'none');
+
+        document.getElementById('retroForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const sprintName = document.getElementById('retroSprintName').value;
+            try {
+                const res = await fetch('/api/retros', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        workspaceId: currentActiveWorkspace ? currentActiveWorkspace.id : 'ws-default',
+                        sprintName
+                    })
+                });
+                if (res.ok) {
+                    const newRetro = await res.json();
+                    currentRetroId = newRetro.id;
+                    showNotification('New Retro Board created!', 'success');
+                    retroModal.style.display = 'none';
+                    document.getElementById('retroForm').reset();
+                    await loadRetros();
+                }
+            } catch (err) {
+                showNotification('Error creating retro: ' + err.message, 'error');
+            }
+        });
+
+        function renderRetroBoard(retro) {
+            if (!retro) {
+                aiSummaryBanner.innerHTML = '<strong>AI Retro Insights:</strong> No retro board active.';
+                ['wentWell', 'didNotGoWell', 'actionItems', 'ideas'].forEach(col => {
+                    document.getElementById(`col-${col}`).innerHTML = '<div style="font-size: 0.78rem; color: var(--text-muted);">No notes</div>';
+                });
+                return;
+            }
+
+            aiSummaryBanner.innerHTML = `<strong>AI Retro Insights:</strong> ${retro.aiSummary || 'Click "AI Retro Insights" to generate performance summary.'}`;
+
+            renderColumnCards('wentWell', retro.columns.wentWell || [], 'sticky-went-well');
+            renderColumnCards('didNotGoWell', retro.columns.didNotGoWell || [], 'sticky-did-not-go');
+            renderColumnCards('actionItems', retro.columns.actionItems || [], 'sticky-action-items');
+            renderColumnCards('ideas', retro.columns.ideas || [], 'sticky-ideas');
+        }
+
+        function renderColumnCards(colKey, cards, stickyClass) {
+            const container = document.getElementById(`col-${colKey}`);
+            if (!cards || cards.length === 0) {
+                container.innerHTML = '<div style="font-size: 0.75rem; color: var(--text-muted); padding: 8px;">No notes added yet.</div>';
+                return;
+            }
+
+            container.innerHTML = cards.map(c => `
+                <div class="sticky-card ${stickyClass}">
+                    <div>${c.text}</div>
+                    <div class="card-actions">
+                        <span>By: ${c.author || 'Member'}</span>
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            ${colKey !== 'actionItems' ? `
+                                <button class="btn btn-sm" onclick="voteCard('${colKey}', '${c.id}')">👍 ${c.votes || 0}</button>
+                            ` : `
+                                <button class="btn btn-primary btn-sm" onclick="convertActionToTask('${c.text}')">Convert to Task</button>
+                            `}
+                            <button class="btn btn-danger btn-sm" onclick="deleteCard('${colKey}', '${c.id}')">&times;</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function promptAddCard(columnKey) {
+            if (!currentRetroId) return;
+            const text = prompt('Enter retrospective note:');
+            if (!text || !text.trim()) return;
+
+            try {
+                const res = await fetch(`/api/retros/${currentRetroId}/cards`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ columnKey, text: text.trim(), author: 'Collaborator' })
+                });
+                if (res.ok) {
+                    await loadRetros();
+                }
+            } catch (err) {
+                showNotification('Error adding note: ' + err.message, 'error');
+            }
+        }
+        window.promptAddCard = promptAddCard;
+
+        async function voteCard(columnKey, cardId) {
+            if (!currentRetroId) return;
+            try {
+                const res = await fetch(`/api/retros/${currentRetroId}/cards/${cardId}/vote`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ columnKey })
+                });
+                if (res.ok) await loadRetros();
+            } catch (err) {
+                showNotification('Error voting card: ' + err.message, 'error');
+            }
+        }
+        window.voteCard = voteCard;
+
+        async function deleteCard(columnKey, cardId) {
+            if (!currentRetroId) return;
+            try {
+                const res = await fetch(`/api/retros/${currentRetroId}/cards/${cardId}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ columnKey })
+                });
+                if (res.ok) await loadRetros();
+            } catch (err) {
+                showNotification('Error deleting card: ' + err.message, 'error');
+            }
+        }
+        window.deleteCard = deleteCard;
+
+        async function convertActionToTask(cardText) {
+            if (!currentRetroId) return;
+            try {
+                const res = await fetch(`/api/retros/${currentRetroId}/convert-action`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cardText })
+                });
+                if (res.ok) {
+                    showNotification('Converted Action Item to scheduled SprintOps Task!', 'success');
+                    await loadEvents();
+                    await updateStats();
+                }
+            } catch (err) {
+                showNotification('Error converting item: ' + err.message, 'error');
+            }
+        }
+        window.convertActionToTask = convertActionToTask;
+
+        // AI Retro Insights Trigger
+        document.getElementById('triggerAIRetroBtn').addEventListener('click', async () => {
+            if (!currentRetroId) return;
+            const btn = document.getElementById('triggerAIRetroBtn');
+            btn.textContent = 'Analyzing...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`/api/retros/${currentRetroId}/ai-analyze`, { method: 'POST' });
+                if (res.ok) {
+                    showNotification('AI Retro Insights generated!', 'success');
+                    await loadRetros();
+                }
+            } catch (err) {
+                showNotification('Error generating AI analysis: ' + err.message, 'error');
+            } finally {
+                btn.textContent = 'AI Retro Insights';
+                btn.disabled = false;
+            }
+        });
+
+        // Form Submit
         taskForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const formData = new FormData(taskForm);
             const taskData = {
+                workspaceId: currentActiveWorkspace ? currentActiveWorkspace.id : 'ws-default',
                 title: formData.get('title'),
                 taskType: formData.get('taskType'),
                 priority: formData.get('priority'),
@@ -382,15 +1705,15 @@
             try {
                 const response = await fetch('/api/calendar/events', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(taskData)
                 });
 
                 if (response.ok) {
                     showNotification('Task scheduled successfully!', 'success');
                     taskForm.reset();
+                    document.getElementById('scheduledTime').value = new Date(Date.now() + 3600000).toISOString().slice(0, 16);
+                    document.getElementById('projectPath').value = currentActiveWorkspace ? currentActiveWorkspace.projectPath : './';
                     loadEvents();
                     updateStats();
                 } else {
@@ -401,226 +1724,317 @@
             }
         });
 
-        // Load and display events
+        // Load Antigravity Scheduled Tasks Trajectories
         async function loadEvents() {
             try {
                 const response = await fetch('/api/calendar/events');
                 const events = await response.json();
-                
                 displayEvents(events);
             } catch (error) {
-                eventsList.innerHTML = '<div class="loading">Error loading tasks</div>';
+                eventsList.innerHTML = '<div style="color: #f85149; text-align: center; padding: 20px;">Error loading task trajectories</div>';
             }
         }
 
         function displayEvents(events) {
             if (events.length === 0) {
-                eventsList.innerHTML = '<div class="loading">No tasks scheduled</div>';
+                eventsList.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 30px;">No scheduled tasks in this workspace.</div>';
                 return;
             }
 
-            // Sort events by scheduled time
             events.sort((a, b) => new Date(a.scheduledTime) - new Date(b.scheduledTime));
 
-            const eventsHtml = events.map(event => `
-                <div class="event-item">
-                    <div class="event-title">${event.title}</div>
-                    <div class="event-meta">
+            const eventsHtml = events.map((event, idx) => `
+                <div class="ag-task-card status-${event.status}">
+                    <div class="ag-card-top">
+                        <div class="ag-task-title">#task-${(idx + 1).toString().padStart(2, '0')} • ${event.title}</div>
                         <span class="status-badge status-${event.status}">${event.status.replace('_', ' ')}</span>
-                        <span style="margin-left: 15px;">📅 ${new Date(event.scheduledTime).toLocaleString()}</span>
-                        <span style="margin-left: 15px;">🏷️ ${event.taskType}</span>
-                        <span style="margin-left: 15px;">⚡ ${event.priority}</span>
                     </div>
-                    <div class="event-description">${event.description || 'No description provided'}</div>
-                    ${event.requirements.length > 0 ? `
-                        <div style="margin-top: 10px; font-size: 12px; color: #666;">
-                            <strong>Requirements:</strong> ${event.requirements.join(', ')}
-                        </div>
-                    ` : ''}
+
+                    <div class="ag-meta-row">
+                        <span>📁 Path: <span class="ag-path-pill">${event.projectPath || './'}</span></span>
+                        <span>⏰ Scheduled: ${new Date(event.scheduledTime).toLocaleString()}</span>
+                        <span>Priority: <strong>${(event.priority || 'medium').toUpperCase()}</strong></span>
+                        <span>Type: ${event.taskType || 'feature'}</span>
+                    </div>
+
+                    <div style="font-size: 0.8rem; color: var(--text-body); line-height: 1.4;">${event.description || 'No prompt description.'}</div>
+
+                    <div class="ag-steps-box">
+                        <div style="font-weight: 600; color: var(--text-heading); margin-bottom: 2px;">Execution Trajectory Steps:</div>
+                        <div>1. [x] Analyze codebase structure & AST dependencies</div>
+                        <div>2. [${event.status === 'completed' ? 'x' : event.status === 'in_progress' ? '/' : ' '}] Generate implementation plan & execute changes</div>
+                        <div>3. [${event.status === 'completed' ? 'x' : ' '}] Run test suite & sync status</div>
+                    </div>
+
+                    <div style="display: flex; gap: 8px; margin-top: 4px;">
+                        ${event.status === 'scheduled' || event.status === 'failed' ? `
+                            <button class="btn btn-primary btn-sm" onclick="executeTaskNow('${event.id}')">⚡ Run Now</button>
+                            <button class="btn btn-danger btn-sm" onclick="cancelTask('${event.id}')">❌ Cancel</button>
+                        ` : ''}
+                    </div>
                 </div>
             `).join('');
 
             eventsList.innerHTML = eventsHtml;
         }
 
-        // Update statistics
+        // Stats
         async function updateStats() {
             try {
                 const response = await fetch('/api/calendar/events');
                 const events = await response.json();
-                
-                const stats = {
-                    scheduled: events.filter(e => e.status === 'scheduled').length,
-                    inProgress: events.filter(e => e.status === 'in_progress').length,
-                    completed: events.filter(e => e.status === 'completed').length,
-                    failed: events.filter(e => e.status === 'failed').length
-                };
-
-                const total = stats.completed + stats.failed;
-                const successRate = total > 0 ? Math.round((stats.completed / total) * 100) : 0;
-
-                document.getElementById('scheduledCount').textContent = stats.scheduled;
-                document.getElementById('inProgressCount').textContent = stats.inProgress;
-                document.getElementById('completedCount').textContent = stats.completed;
-                document.getElementById('successRate').textContent = successRate + '%';
+                loadVelocityPredictor();
             } catch (error) {
                 console.error('Error updating stats:', error);
             }
         }
 
-        // Socket.IO event handlers
+        // Socket Logs
         socket.on('task_update', function(data) {
+            appendLog(`[${data.status.toUpperCase()}] ${data.message}`, 'status');
             loadEvents();
             updateStats();
         });
 
         socket.on('task_completed', function(data) {
-            showNotification(`Task completed: ${data.result.success ? 'Success' : 'Failed'}`, 
-                           data.result.success ? 'success' : 'error');
+            let message = `Task Completed: ${data.result.success ? 'Success' : 'Failed'}`;
+            appendLog(message, data.result.success ? 'status' : 'error');
+            showNotification(message, data.result.success ? 'success' : 'error');
             loadEvents();
             updateStats();
         });
 
         socket.on('task_error', function(data) {
+            appendLog(`[ERROR] ${data.error}`, 'error');
             showNotification(`Task failed: ${data.error}`, 'error');
             loadEvents();
             updateStats();
         });
 
-        // Utility functions
+        function appendLog(msg, type = 'normal') {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            const time = new Date().toLocaleTimeString();
+            
+            let classType = '';
+            if (type === 'status') classType = 'log-status';
+            if (type === 'error') classType = 'log-error';
+            
+            entry.innerHTML = `<span class="log-time">[${time}]</span> <span class="${classType}">${msg}</span>`;
+            executionLogs.appendChild(entry);
+            executionLogs.scrollTop = executionLogs.scrollHeight;
+        }
+
+        // Toast
         function showNotification(message, type = 'success') {
             notification.textContent = message;
             notification.className = `notification ${type} show`;
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 5000);
+            setTimeout(() => { notification.classList.remove('show'); }, 4000);
         }
 
-        // Load integration status
+        // Status
         async function loadIntegrationStatus() {
             try {
                 const response = await fetch('/api/integrations/status');
                 const status = await response.json();
                 
-                // Update GitHub status
-                const githubStatus = document.getElementById('githubStatus');
-                const githubStatusText = document.getElementById('githubStatusText');
-                if (status.github.configured) {
-                    githubStatus.style.color = '#4caf50';
-                    githubStatusText.textContent = 'Connected';
-                } else {
-                    githubStatus.style.color = '#f44336';
-                    githubStatusText.textContent = 'Not configured';
-                }
-
-                // Update JIRA status
-                const jiraStatus = document.getElementById('jiraStatus');
-                const jiraStatusText = document.getElementById('jiraStatusText');
-                if (status.jira.configured) {
-                    jiraStatus.style.color = '#4caf50';
-                    jiraStatusText.textContent = 'Connected';
-                } else {
-                    jiraStatus.style.color = '#f44336';
-                    jiraStatusText.textContent = 'Not configured';
-                }
-
-                // Update Teams status
-                const teamsStatus = document.getElementById('teamsStatus');
-                const teamsStatusText = document.getElementById('teamsStatusText');
-                if (status.teams.configured) {
-                    teamsStatus.style.color = '#4caf50';
-                    teamsStatusText.textContent = 'Connected';
-                } else {
-                    teamsStatus.style.color = '#f44336';
-                    teamsStatusText.textContent = 'Not configured';
-                }
-
+                document.getElementById('githubStatusText').textContent = status.github.configured ? 'Connected' : 'Not Configured';
+                document.getElementById('jiraStatusText').textContent = status.jira.configured ? 'Connected' : 'Not Configured';
+                document.getElementById('teamsStatusText').textContent = status.teams.configured ? 'Connected' : 'Not Configured';
             } catch (error) {
                 console.error('Error loading integration status:', error);
-                document.getElementById('githubStatusText').textContent = 'Error';
-                document.getElementById('jiraStatusText').textContent = 'Error';
             }
         }
 
-        // Test integrations
+        // Test Integrations
         async function testIntegrations() {
             const btn = document.getElementById('testIntegrationsBtn');
             btn.textContent = 'Testing...';
             btn.disabled = true;
 
             try {
-                const response = await fetch('/api/integrations/test', {
-                    method: 'POST'
-                });
+                const response = await fetch('/api/integrations/test', { method: 'POST' });
                 const results = await response.json();
 
-                // Update GitHub status based on test
-                const githubStatus = document.getElementById('githubStatus');
-                const githubStatusText = document.getElementById('githubStatusText');
-                if (results.github.success) {
-                    githubStatus.style.color = '#4caf50';
-                    githubStatusText.textContent = 'Test passed';
-                    showNotification('GitHub integration test passed!', 'success');
-                } else {
-                    githubStatus.style.color = '#f44336';
-                    githubStatusText.textContent = 'Test failed';
-                    showNotification('GitHub test failed: ' + results.github.error, 'error');
-                }
+                if (results.github.success) showNotification('GitHub test passed!', 'success');
+                else showNotification('GitHub test failed: ' + results.github.error, 'error');
 
-                // Update JIRA status based on test
-                const jiraStatus = document.getElementById('jiraStatus');
-                const jiraStatusText = document.getElementById('jiraStatusText');
-                if (results.jira.success) {
-                    jiraStatus.style.color = '#4caf50';
-                    jiraStatusText.textContent = 'Test passed';
-                    showNotification('JIRA integration test passed!', 'success');
-                } else {
-                    jiraStatus.style.color = '#f44336';
-                    jiraStatusText.textContent = 'Test failed';
-                    showNotification('JIRA test failed: ' + results.jira.error, 'error');
-                }
+                if (results.jira.success) showNotification('JIRA test passed!', 'success');
+                else showNotification('JIRA test failed: ' + results.jira.error, 'error');
 
-                // Update Teams status based on test
-                const teamsStatus = document.getElementById('teamsStatus');
-                const teamsStatusText = document.getElementById('teamsStatusText');
-                if (results.teams.success) {
-                    teamsStatus.style.color = '#4caf50';
-                    teamsStatusText.textContent = 'Test passed';
-                    showNotification('Teams integration test passed!', 'success');
-                } else {
-                    teamsStatus.style.color = '#f44336';
-                    teamsStatusText.textContent = 'Test failed';
-                    showNotification('Teams test failed: ' + results.teams.error, 'error');
-                }
+                if (results.teams.success) showNotification('Teams test passed!', 'success');
+                else showNotification('Teams test failed: ' + results.teams.error, 'error');
 
+                loadIntegrationStatus();
             } catch (error) {
-                showNotification('Integration test failed: ' + error.message, 'error');
+                showNotification('Test failed: ' + error.message, 'error');
             } finally {
                 btn.textContent = 'Test Integrations';
                 btn.disabled = false;
             }
         }
 
-        // Enhanced task completion handler with integration info
-        socket.on('task_completed', function(data) {
-            let message = `Task completed: ${data.result.success ? 'Success' : 'Failed'}`;
-            
-            if (data.integrations) {
-                if (data.integrations.jiraTicket) {
-                    message += ` | JIRA: ${data.integrations.jiraTicket.key}`;
+        // Settings Modal
+        const settingsModal = document.getElementById('settingsModal');
+        document.getElementById('openSettingsBtn').addEventListener('click', async () => {
+            try {
+                const res = await fetch('/api/config');
+                const config = await res.json();
+                
+                for (const key in config) {
+                    if (key === 'customLLM') {
+                        settingsForm.elements['customLLM_baseUrl'].value = config.customLLM.baseUrl || '';
+                        settingsForm.elements['customLLM_modelName'].value = config.customLLM.modelName || '';
+                        settingsForm.elements['customLLM_apiKey'].value = config.customLLM.apiKey || '';
+                    } else {
+                        const input = settingsForm.elements[key];
+                        if (input) input.value = config[key];
+                    }
                 }
-                if (data.integrations.pullRequest) {
-                    message += ` | PR: #${data.integrations.pullRequest.prNumber}`;
-                }
+                
+                settingsModal.style.display = 'flex';
+            } catch (err) {
+                showNotification('Failed to load settings: ' + err.message, 'error');
             }
-            
-            showNotification(message, data.result.success ? 'success' : 'error');
-            loadEvents();
-            updateStats();
         });
 
-        // Auto-refresh every 30 seconds
+        document.getElementById('closeSettingsBtn').addEventListener('click', () => settingsModal.style.display = 'none');
+        document.getElementById('cancelSettingsBtn').addEventListener('click', () => settingsModal.style.display = 'none');
+
+        document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(settingsForm);
+            const configData = {};
+            const customLLM = {};
+            
+            for (const [key, val] of formData.entries()) {
+                if (key.startsWith('customLLM_')) {
+                    customLLM[key.replace('customLLM_', '')] = val;
+                } else {
+                    configData[key] = val;
+                }
+            }
+            configData.customLLM = customLLM;
+
+            try {
+                const res = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(configData)
+                });
+                
+                if (res.ok) {
+                    showNotification('Settings saved!', 'success');
+                    settingsModal.style.display = 'none';
+                    loadIntegrationStatus();
+                }
+            } catch (err) {
+                showNotification('Error saving settings: ' + err.message, 'error');
+            }
+        });
+
+        // Run Task Immediately
+        async function executeTaskNow(id) {
+            try {
+                const res = await fetch(`/api/calendar/events/${id}/execute`, { method: 'POST' });
+                if (res.ok) {
+                    showNotification('Task execution started!', 'success');
+                    appendLog(`[MANUAL_TRIGGER] Executing task ${id}`, 'status');
+                    loadEvents();
+                    updateStats();
+                }
+            } catch (err) {
+                showNotification('Error triggering task: ' + err.message, 'error');
+            }
+        }
+
+        // Cancel Task
+        async function cancelTask(id) {
+            if (!confirm('Cancel and delete this task?')) return;
+            try {
+                const res = await fetch(`/api/calendar/events/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    showNotification('Task cancelled!', 'success');
+                    appendLog(`[CANCEL] Task ${id} cancelled`, 'error');
+                    loadEvents();
+                    updateStats();
+                }
+            } catch (err) {
+                showNotification('Error cancelling task: ' + err.message, 'error');
+            }
+        }
+
+        window.executeTaskNow = executeTaskNow;
+        window.cancelTask = cancelTask;
+
+        // Waveform Audio Dictation
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+
+        document.getElementById('waveform').addEventListener('click', async () => {
+            if (!isRecording) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+
+                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                    mediaRecorder.onstop = async () => {
+                        document.getElementById('voice-status').textContent = "Transcribing voice...";
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const formData = new FormData();
+                        formData.append('audio', audioBlob, 'recording.webm');
+
+                        try {
+                            const res = await fetch('/api/speech/transcribe', { method: 'POST', body: formData });
+                            const data = await res.json();
+                            if (data.text) {
+                                document.getElementById('voice-status').textContent = `"${data.text}"`;
+                                parseAndFillCommand(data.text);
+                            }
+                        } catch (err) {
+                            document.getElementById('voice-status').textContent = "Transcription failed.";
+                        }
+                    };
+
+                    mediaRecorder.start();
+                    isRecording = true;
+                    document.getElementById('waveform').classList.add('recording');
+                    document.getElementById('voice-status').textContent = "Recording... Click to stop";
+                } catch (err) {
+                    document.getElementById('voice-status').textContent = "Microphone access denied.";
+                }
+            } else {
+                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                    mediaRecorder.stop();
+                    isRecording = false;
+                    document.getElementById('waveform').classList.remove('recording');
+                }
+            }
+        });
+
+        async function parseAndFillCommand(text) {
+            try {
+                const parseRes = await fetch('/api/speech/parse-command', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+                if (parseRes.ok) {
+                    const parsed = await parseRes.json();
+                    if (parsed.title) document.getElementById('title').value = parsed.title;
+                    if (parsed.taskType) document.getElementById('taskType').value = parsed.taskType;
+                    if (parsed.priority) document.getElementById('priority').value = parsed.priority;
+                    if (parsed.description) document.getElementById('description').value = parsed.description;
+                    if (parsed.requirements) document.getElementById('requirements').value = parsed.requirements.join('\n');
+                    showNotification('Parsed voice command into task console', 'success');
+                }
+            } catch (err) {
+                console.error('Failed to parse voice command:', err);
+            }
+        }
+
         setInterval(() => {
             loadEvents();
             updateStats();

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo-GPT AI Agent Drawer</title>
+    <style>
+        :root {
+            --bg-canvas: #0d1117;
+            --surface-card: #161b22;
+            --surface-border: #21262d;
+            --input-border: #30363d;
+            --text-heading: #f0f6fc;
+            --text-body: #c9d1d9;
+            --text-muted: #8b949e;
+            --accent-blue: #58a6ff;
+            --accent-green: #238636;
+            --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+            --font-code: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-main);
+        }
+
+        body {
+            background-color: var(--bg-canvas);
+            color: var(--text-body);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: var(--surface-card);
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--surface-border);
+        }
+
+        .header h1 {
+            color: var(--text-heading);
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .header .status {
+            font-size: 0.75rem;
+            color: #3fb950;
+            background: rgba(46, 160, 67, 0.15);
+            padding: 2px 8px;
+            border-radius: 12px;
+            border: 1px solid rgba(46, 160, 67, 0.4);
+        }
+
+        .agent-visual {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .waveform-box {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--surface-card);
+            border: 1px solid var(--input-border);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .waveform-box:hover {
+            border-color: var(--accent-blue);
+        }
+
+        .waveform-container {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            height: 36px;
+        }
+
+        .wave-bar {
+            width: 4px;
+            height: 12px;
+            background: var(--accent-blue);
+            border-radius: 2px;
+        }
+
+        .listening .wave-bar {
+            animation: wave 0.8s infinite ease-in-out alternate;
+        }
+        .listening .wave-bar:nth-child(1) { animation-delay: 0.1s; }
+        .listening .wave-bar:nth-child(2) { animation-delay: 0.3s; }
+        .listening .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+        .listening .wave-bar:nth-child(4) { animation-delay: 0.4s; }
+
+        @keyframes wave {
+            0% { height: 8px; }
+            100% { height: 32px; background: #79c0ff; }
+        }
+
+        .transcript {
+            margin-top: 24px;
+            font-size: 0.9rem;
+            color: var(--text-heading);
+            min-height: 2.2rem;
+            width: 90%;
+            line-height: 1.4;
+        }
+
+        .helper-text {
+            margin-top: 8px;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+        }
+
+        .model-selector {
+            padding: 0 18px 12px;
+        }
+
+        .model-selector select {
+            background: var(--surface-card);
+            color: var(--accent-blue);
+            border: 1px solid var(--input-border);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            outline: none;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .chat-input {
+            padding: 14px 18px;
+            display: flex;
+            gap: 8px;
+            background: var(--surface-card);
+            border-top: 1px solid var(--surface-border);
+        }
+
+        .chat-input input {
+            flex: 1;
+            background: var(--bg-canvas);
+            border: 1px solid var(--input-border);
+            color: var(--text-heading);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .chat-input input:focus {
+            border-color: var(--accent-blue);
+        }
+
+        .chat-input button {
+            background: var(--accent-green);
+            color: #ffffff;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .chat-input button:hover {
+            background: #2ea043;
+        }
+
+        .notification-tray {
+            position: absolute;
+            top: 56px;
+            right: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 100;
+        }
+
+        .msg-toast {
+            background: var(--surface-card);
+            border-left: 3px solid var(--accent-blue);
+            padding: 8px 12px;
+            border-radius: 4px;
+            color: var(--text-heading);
+            font-size: 0.78rem;
+            max-width: 300px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>SprintOps AI Copilot</h1>
+        <span class="status">Online</span>
+    </div>
+
+    <div class="notification-tray" id="tray"></div>
+
+    <div class="agent-visual">
+        <div class="waveform-box" id="orb" title="Dictate voice command">
+            <div class="waveform-container" id="waveform">
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+            </div>
+        </div>
+        <div class="transcript" id="transcript">"Schedule task for user authentication endpoint"</div>
+        <div class="helper-text" id="helper-text">Click waveform to dictate prompt</div>
+    </div>
+
+    <div class="model-selector">
+        <select id="ai-model">
+            <option value="gpt-4">GPT-4 Engine</option>
+            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+            <option value="claude-3-opus">Claude 3 Opus</option>
+            <option value="claude-3-sonnet">Claude 3 Sonnet</option>
+            <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+            <option value="local-llama">Local LLaMA 3 (Docker)</option>
+        </select>
+    </div>
+
+    <form class="chat-input" id="chat-form">
+        <input type="text" id="command-input" placeholder="Type prompt command..." autocomplete="off" />
+        <button type="submit">Submit</button>
+    </form>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const orb = document.getElementById('orb');
+        const transcript = document.getElementById('transcript');
+        const helperText = document.getElementById('helper-text');
+        const form = document.getElementById('chat-form');
+        const input = document.getElementById('command-input');
+        const tray = document.getElementById('tray');
+
+        socket.on('task_update', data => showToast(`${data.status.toUpperCase()}: ${data.message}`));
+        socket.on('task_completed', data => showToast(`Task Completed: ${data.result.success ? 'Success' : 'Failed'}`));
+        socket.on('task_error', data => showToast(`Error: ${data.error}`));
+
+        function showToast(msg) {
+            const el = document.createElement('div');
+            el.className = 'msg-toast';
+            el.textContent = msg;
+            tray.appendChild(el);
+            setTimeout(() => {
+                el.style.opacity = '0';
+                setTimeout(() => el.remove(), 300);
+            }, 3500);
+        }
+
+        let mediaRecorder;
+        let audioChunks = [];
+        let isListening = false;
+
+        async function initAudio() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+
+                mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+                mediaRecorder.onstop = async () => {
+                    orb.classList.remove('listening');
+                    transcript.textContent = "Transcribing audio...";
+                    
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    audioChunks = [];
+                    
+                    const formData = new FormData();
+                    formData.append('audio', audioBlob, 'recording.webm');
+
+                    try {
+                        const res = await fetch('/api/speech/transcribe', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const data = await res.json();
+                        
+                        if (data.text) {
+                            transcript.textContent = `"${data.text}"`;
+                            processCommand(data.text);
+                        } else {
+                            transcript.textContent = "Could not transcribe audio.";
+                            helperText.textContent = "Click waveform to dictate prompt";
+                        }
+                    } catch (err) {
+                        transcript.textContent = "Network error during transcription.";
+                        helperText.textContent = "Click waveform to dictate prompt";
+                    }
+                };
+            } catch (err) {
+                helperText.textContent = "Microphone ready";
+            }
+        }
+
+        initAudio();
+
+        orb.addEventListener('click', () => {
+            if (!mediaRecorder) return;
+            
+            if (isListening) {
+                if (mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+                isListening = false;
+                orb.classList.remove('listening');
+                helperText.textContent = "Processing...";
+            } else {
+                audioChunks = [];
+                mediaRecorder.start();
+                isListening = true;
+                orb.classList.add('listening');
+                transcript.textContent = "Recording audio...";
+                helperText.textContent = "Click waveform to stop";
+            }
+        });
+
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+            const cmd = input.value.trim();
+            if (cmd) {
+                transcript.textContent = `"${cmd}"`;
+                processCommand(cmd);
+                input.value = '';
+            }
+        });
+
+        async function processCommand(text) {
+            helperText.textContent = "Parsing command...";
+            const selectedModel = document.getElementById('ai-model').value;
+
+            try {
+                const parseResponse = await fetch('/api/speech/parse-command', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+
+                if (!parseResponse.ok) throw new Error('Failed to parse command');
+
+                const taskData = await parseResponse.json();
+                taskData.description = (taskData.description || text) + "\n[Model Assigned: " + selectedModel + "]";
+
+                const scheduleResponse = await fetch('/api/calendar/events', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(taskData)
+                });
+                
+                if (scheduleResponse.ok) {
+                    transcript.textContent = "Task scheduled!";
+                    socket.emit('task_progress', { status: 'scheduled', message: 'New task scheduled' });
+                } else {
+                    transcript.textContent = "Failed to schedule task.";
+                }
+            } catch (err) {
+                console.error("Command processing error:", err);
+                transcript.textContent = "Error processing command.";
+            }
+
+            setTimeout(() => {
+                helperText.textContent = "Click waveform to dictate prompt";
+            }, 1500);
+        }
+    </script>
+</body>
+</html>

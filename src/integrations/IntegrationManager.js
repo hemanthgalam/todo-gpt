@@ -2,9 +2,9 @@ const GitHubIntegration = require('./GitHubIntegration');
 const JiraIntegration = require('./JiraIntegration');
 const TeamsIntegration = require('./TeamsIntegration');
 const Logger = require('../utils/Logger');
-
 class IntegrationManager {
-    constructor() {
+    constructor(app) {
+        this.app = app;
         this.github = new GitHubIntegration();
         this.jira = new JiraIntegration();
         this.teams = new TeamsIntegration();
@@ -301,7 +301,40 @@ class IntegrationManager {
 
     async handleJiraWebhook(payload) {
         try {
-            await this.jira.handleWebhook(payload);
+            const result = await this.jira.handleWebhook(payload);
+            if (result && result.key && result.status && this.app && this.app.calendarManager) {
+                const events = await this.app.calendarManager.getEvents();
+                const event = events.find(e => e.jiraKey === result.key || (e.result && e.result.integrations && e.result.integrations.jiraTicket && e.result.integrations.jiraTicket.key === result.key));
+                if (event) {
+                    const normalizedStatus = result.status.toLowerCase();
+                    let newStatus = event.status;
+                    
+                    if (normalizedStatus === 'done') {
+                        await this.app.calendarManager.markTaskAsCompleted(event.id, {
+                            success: true,
+                            message: 'Synchronized status to Completed via JIRA Done transition webhook.'
+                        });
+                        newStatus = 'completed';
+                    } else if (normalizedStatus === 'in progress') {
+                        await this.app.calendarManager.markTaskAsStarted(event.id);
+                        newStatus = 'in_progress';
+                    } else if (normalizedStatus === 'cancelled' || normalizedStatus === 'rejected') {
+                        await this.app.calendarManager.markTaskAsFailed(event.id, 'Task cancelled/rejected in JIRA.');
+                        newStatus = 'failed';
+                    }
+                    
+                    if (this.app.io) {
+                        this.app.io.emit('task_update', {
+                            taskId: event.id,
+                            status: newStatus,
+                            message: `JIRA webhook synced status: ${result.status}`,
+                            timestamp: new Date()
+                        });
+                    }
+                    
+                    this.logger.info(`Synced status from JIRA ticket ${result.key} to task ${event.id}: ${result.status}`);
+                }
+            }
         } catch (error) {
             this.logger.error('Error handling JIRA webhook', { error: error.message });
         }
